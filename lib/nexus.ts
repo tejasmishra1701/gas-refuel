@@ -1,104 +1,183 @@
-// lib/nexus.ts
 import { NexusSDK } from '@avail-project/nexus-core';
-import type { BridgeParams, TransferParams, UserAsset } from '@avail-project/nexus-core';
-import { SUPPORTED_CHAINS } from './chains';
+import type { WalletClient } from 'wagmi';
+import type { UserAsset } from '@avail-project/nexus-core';
 
-/** Singleton instance */
-let sdkInstance: NexusSDK | null = null;
+class NexusService {
+  private sdk: NexusSDK;
+  private initialized = false;
 
-/** Initialize Nexus SDK with wallet provider */
-export async function initializeNexusSDK(walletClient: any) {
-  if (sdkInstance) return sdkInstance;
-
-  try {
-    const provider = await walletClient.getProvider();
-
-    const sdk = new NexusSDK({ network: 'testnet' });
-    await sdk.initialize(provider);
-
-    sdkInstance = sdk;
-    console.log('✅ Nexus SDK initialized');
-    return sdk;
-  } catch (error) {
-    console.error('❌ Nexus SDK init failed', error);
-    throw error;
+  constructor(network: 'mainnet' | 'testnet' = 'testnet') {
+    this.sdk = new NexusSDK({ network: network as any });
   }
-}
 
-/** Return existing SDK instance */
-export function getNexusSDK(): NexusSDK {
-  if (!sdkInstance) throw new Error('Nexus SDK not initialized');
-  return sdkInstance;
-}
-
-/** Get unified balances for wallet address */
-export async function getUnifiedBalances(address: `0x${string}`): Promise<Record<string, bigint>> {
-  if (!sdkInstance) throw new Error('Nexus SDK not initialized');
-
-  try {
-    const assets: UserAsset[] = await sdkInstance.getUnifiedBalances({ address });
-    const balances: Record<string, bigint> = {};
-
-    for (const chainKey in SUPPORTED_CHAINS) {
-      const chain = SUPPORTED_CHAINS[chainKey as keyof typeof SUPPORTED_CHAINS];
-      const asset = assets.find(a =>
-        a.symbol === 'ETH' &&
-        a.breakdown?.some(b => b.chain.id === chain.id)
-      );
-
-      const chainBalance = asset?.breakdown?.find(b => b.chain.id === chain.id)?.balance || 0;
-      balances[chainKey] = BigInt(chainBalance);
+  async initialize(walletClient: WalletClient | any) {
+    if (this.initialized) {
+      console.log('✅ Nexus already initialized');
+      return;
     }
 
-    return balances;
-  } catch (error) {
-    console.error('❌ Failed to fetch unified balances', error);
-    return {};
+    try {
+      // Get the actual Ethereum provider
+      let provider;
+
+      if (typeof window !== 'undefined') {
+        // Priority order for getting provider
+        if ((window as any).ethereum) {
+          provider = (window as any).ethereum;
+        } else if (walletClient?.transport) {
+          // Fallback to transport if available
+          provider = walletClient.transport;
+        } else {
+          throw new Error('No Ethereum provider found. Please install MetaMask.');
+        }
+      } else {
+        throw new Error('Window is not defined - must be in browser');
+      }
+
+      console.log('🔄 Initializing Nexus SDK with provider...');
+      await this.sdk.initialize(provider);
+      this.initialized = true;
+      console.log('✅ Nexus SDK initialized successfully');
+    } catch (error) {
+      console.error('❌ Nexus initialization failed:', error);
+      throw error;
+    }
+  }
+
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  /** Get utils only after SDK is initialized */
+  get utils() {
+    if (!this.initialized) throw new Error('SDK not initialized');
+    return this.sdk.utils;
+  }
+
+  async getBalances(): Promise<UserAsset[]> {
+    if (!this.initialized) throw new Error('SDK not initialized');
+    return this.sdk.getUnifiedBalances();
+  }
+
+  async getBalance(token: string): Promise<UserAsset | undefined> {
+    if (!this.initialized) throw new Error('SDK not initialized');
+    return this.sdk.getUnifiedBalance(token);
+  }
+
+  async bridge(params: {
+    token: string;
+    amount: string | number;
+    fromChainId: number;
+    toChainId: number;
+    sourceChains?: number[];
+  }) {
+    if (!this.initialized) {
+      throw new Error('SDK not initialized. Please wait for wallet connection.');
+    }
+
+    console.log('🌉 Starting bridge operation:', params);
+
+    try {
+      // Use transfer() for cross-chain token movement
+      const result = await this.sdk.transfer({
+        token: params.token as any,
+        amount: params.amount,
+        chainId: params.toChainId,
+        recipient: await this.getSignerAddress(),
+        sourceChains: params.sourceChains ?? [params.fromChainId],
+      });
+
+      console.log('✅ Bridge result:', result);
+      return result;
+    } catch (error: any) {
+      console.error('❌ Bridge failed:', error);
+      throw new Error(error?.message || 'Bridge operation failed');
+    }
+  }
+
+  async simulateBridge(params: {
+    token: string;
+    amount: string | number;
+    fromChainId: number;
+    toChainId: number;
+  }) {
+    if (!this.initialized) throw new Error('SDK not initialized');
+
+    try {
+      return await this.sdk.simulateTransfer({
+        token: params.token as any,
+        amount: params.amount,
+        chainId: params.toChainId,
+        recipient: await this.getSignerAddress(),
+      });
+    } catch (error) {
+      console.error('Simulation failed:', error);
+      throw error;
+    }
+  }
+
+  private async getSignerAddress(): Promise<`0x${string}`> {
+    if (!this.initialized) throw new Error('SDK not initialized');
+    
+    try {
+      // Try to get address from window.ethereum first
+      if (typeof window !== 'undefined' && (window as any).ethereum) {
+        const accounts = await (window as any).ethereum.request({ 
+          method: 'eth_accounts' 
+        });
+        
+        if (accounts && accounts.length > 0) {
+          return accounts[0] as `0x${string}`;
+        }
+      }
+
+      // Fallback to SDK provider
+      const provider = this.sdk.getEVMProviderWithCA();
+      const accounts = await provider.request({ 
+        method: 'eth_accounts', 
+        params: [] 
+      });
+      
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts found');
+      }
+      
+      return accounts[0] as `0x${string}`;
+    } catch (error) {
+      console.error('Failed to get signer address:', error);
+      throw error;
+    }
+  }
+
+  async deinit() {
+    if (!this.initialized) return;
+    
+    try {
+      this.sdk.removeAllListeners();
+      await this.sdk.deinit();
+      this.initialized = false;
+      console.log('Nexus SDK deinitialized');
+    } catch (error) {
+      console.error('Error deinitializing SDK:', error);
+    }
   }
 }
 
-/** Simulate cross-chain transfer */
-export async function simulateBridge(params: {
+// Export singleton instance (testnet for hackathon)
+export const nexusService = new NexusService('testnet');
+
+/** For GasDashboard.tsx */
+export const initializeNexusSDK = async (walletClient: WalletClient) => {
+  await nexusService.initialize(walletClient);
+};
+
+export const bridgeTokens = async (params: {
   token: string;
-  amount: string;
+  amount: string | number;
   fromChainId: number;
   toChainId: number;
-}) {
-  if (!sdkInstance) throw new Error('Nexus SDK not initialized');
+}) => {
+  return nexusService.bridge(params);
+};
 
-  const simulation = await sdkInstance.simulateTransfer({
-    token: params.token,
-    amount: parseFloat(params.amount),
-    chainId: params.toChainId,
-    recipient: '0x0000000000000000000000000000000000000000',
-  });
-
-  return simulation;
-}
-
-/** Execute cross-chain transfer (refuel) */
-export async function bridgeTokens(params: {
-  token: string;
-  amount: string;
-  fromChainId: number;
-  toChainId: number;
-  recipient?: `0x${string}`;
-}) {
-  if (!sdkInstance) throw new Error('Nexus SDK not initialized');
-
-  const transferParams: TransferParams = {
-    token: params.token,
-    amount: parseFloat(params.amount),
-    chainId: params.toChainId,
-    recipient: params.recipient,
-    sourceChains: [params.fromChainId],
-  };
-
-  try {
-    const result = await sdkInstance.transfer(transferParams);
-    return result;
-  } catch (error) {
-    console.error('❌ Bridge failed', error);
-    throw error;
-  }
-}
+export const getNexusSDK = () => nexusService;

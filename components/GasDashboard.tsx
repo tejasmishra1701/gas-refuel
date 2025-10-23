@@ -24,15 +24,25 @@ export function GasDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [targetChain, setTargetChain] = useState<ChainKey | undefined>();
   const [totalBalance, setTotalBalance] = useState<string>('0.00');
+  const [nexusReady, setNexusReady] = useState(false);
+  const [quickSourceChain, setQuickSourceChain] = useState<ChainKey>('sepolia');
+  const [quickTargetChain, setQuickTargetChain] = useState<ChainKey>('baseSepolia');
+  const [quickAmount, setQuickAmount] = useState('0.05');
 
   // ✅ Initialize Nexus SDK when wallet connects
-  useEffect(() => {
-    if (walletClient) {
-      initializeNexusSDK(walletClient)
-        .then(() => console.log('Nexus SDK initialized'))
-        .catch((err) => console.error('Nexus init error:', err));
-    }
-  }, [walletClient]);
+useEffect(() => {
+  if (walletClient && !nexusReady) {
+    initializeNexusSDK(walletClient)
+      .then(() => {
+        console.log('✅ Nexus SDK initialized');
+        setNexusReady(true);
+      })
+      .catch((err) => {
+        console.error('❌ Nexus init error:', err);
+        setNexusReady(false);
+      });
+  }
+}, [walletClient, nexusReady]);
 
   // ✅ Fetch balances for all chains
   useEffect(() => {
@@ -85,43 +95,76 @@ export function GasDashboard() {
     setIsModalOpen(true);
   };
 
+  const handleQuickRefuel = async () => {
+  if (!nexusReady) {
+    alert('⚠️ Nexus SDK is still initializing. Please wait.');
+    return;
+  }
+  console.log('🚀 Quick Refuel Clicked:')
+  await handleRefuel(quickSourceChain, quickTargetChain, quickAmount);
+};
+
   // ✅ Refuel handler (now uses Nexus)
-  const handleRefuel = async (sourceChain: ChainKey, targetChain: ChainKey, amount: string) => {
-    if (!walletClient || !address) {
-      alert('⚠️ Wallet not connected');
+const handleRefuel = async (sourceChain: ChainKey, targetChain: ChainKey, amount: string) => {
+  if (!walletClient || !address) {
+    alert('⚠️ Wallet not connected');
+    return;
+  }
+
+  if (!nexusReady) {
+    alert('⚠️ Nexus SDK is still initializing. Please wait and try again.');
+    return;
+  }
+
+  try {
+    console.log('🚀 Starting cross-chain refuel via Nexus:', {
+      from: sourceChain,
+      to: targetChain,
+      amount,
+    });
+
+    const fromChain = CHAIN_MAP[sourceChain];
+    const toChain = CHAIN_MAP[targetChain];
+
+    if (!fromChain || !toChain) {
+      alert('Invalid chain selection.');
       return;
     }
 
-    try {
-      console.log('🚀 Starting cross-chain refuel via Nexus:', {
-        from: sourceChain,
-        to: targetChain,
-        amount,
-      });
+    // Trigger Nexus transfer
+    const result = await bridgeTokens({
+      token: 'ETH',
+      amount,
+      fromChainId: fromChain.id,
+      toChainId: toChain.id,
+    });
 
-      const fromChain = CHAIN_MAP[sourceChain];
-      const toChain = CHAIN_MAP[targetChain];
+    console.log('✅ Refuel Result:', result);
 
-      if (!fromChain || !toChain) {
-        alert('Invalid chain selection.');
-        return;
-      }
-
-      // Trigger Nexus transfer
-      const result = await bridgeTokens({
-        token: 'ETH',
-        amount,
-        fromChainId: fromChain.id,
-        toChainId: toChain.id,
-      });
-
-      console.log('✅ Refuel Success:', result);
-      alert(`✅ Refuel Successful!\nFrom: ${fromChain.name}\nTo: ${toChain.name}\nAmount: ${amount} ETH`);
-    } catch (error: any) {
-      console.error('❌ Refuel failed:', error);
-      alert(`❌ Refuel failed: ${error?.message || 'Unknown error'}`);
+    if (result.success) {
+      alert(
+        `✅ Refuel Successful!\n\n` +
+        `From: ${fromChain.name}\n` +
+        `To: ${toChain.name}\n` +
+        `Amount: ${amount} ETH\n\n` +
+        `${result.transactionHash ? 'Tx: ' + result.transactionHash : ''}\n` +
+        `${result.explorerUrl ? result.explorerUrl : ''}`
+      );
+      
+      setTimeout(() => window.location.reload(), 5000);
+    } else {
+      throw new Error(result.error || 'Transfer failed');
     }
-  };
+  } catch (error: any) {
+    console.error('❌ Refuel failed:', error);
+    
+    let errorMsg = error?.message || 'Unknown error';
+    if (errorMsg.includes('insufficient')) errorMsg = 'Insufficient balance';
+    if (errorMsg.includes('denied') || errorMsg.includes('rejected')) errorMsg = 'Transaction rejected';
+    
+    alert(`❌ Refuel Failed\n\n${errorMsg}`);
+  }
+};
 
   if (!isConnected) {
     return (
@@ -152,10 +195,16 @@ export function GasDashboard() {
             {/* Total Balance Card */}
             <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-6 mb-8">
               <p className="text-blue-100 text-sm mb-2">Total Gas Balance</p>
-              <p className="text-4xl font-bold text-white mb-4">{totalBalance} ETH</p>
+              <p className="text-4xl font-bold text-white mb-1">{totalBalance} ETH</p>
+              {nexusReady ? (
+                <p className="text-xs text-green-200 mb-3">✅ Cross-chain ready</p>
+              ) : (
+                <p className="text-xs text-yellow-200 mb-3">⏳ Initializing...</p>
+              )}              
               <button
                 onClick={() => handleRefuelClick()}
-                className="bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-lg font-medium transition-colors backdrop-blur-sm border border-white/10"
+                disabled={!nexusReady}
+                className="bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-lg font-medium transition-colors backdrop-blur-sm border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Refuel Multiple Chains
               </button>
@@ -183,10 +232,11 @@ export function GasDashboard() {
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">From</label>
                   <select
-                    defaultValue="sepolia"
+                    value={quickSourceChain}
+                    onChange={(e) => setQuickSourceChain(e.target.value as ChainKey)}
                     className="w-full bg-zinc-800/50 border border-zinc-700/50 p-2.5 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   >
-                    {CHAIN_ARRAY.map(chain => (
+                    {CHAIN_ARRAY.filter(c => c.key !== quickSourceChain).map(chain => (
                       <option key={chain.key} value={chain.key}>
                         {chain.name} ({formatBalance(balances[chain.key])} ETH)
                       </option>
@@ -197,10 +247,11 @@ export function GasDashboard() {
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">To</label>
                   <select
-                    defaultValue="baseSepolia"
+                    value={quickTargetChain}
+                    onChange={(e) => setQuickTargetChain(e.target.value as ChainKey)}
                     className="w-full bg-zinc-800/50 border border-zinc-700/50 p-2.5 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   >
-                    {CHAIN_ARRAY.map(chain => (
+                    {CHAIN_ARRAY.filter(c => c.key !== quickSourceChain).map(chain => (
                       <option key={chain.key} value={chain.key}>
                         {chain.name} ({formatBalance(balances[chain.key])} ETH)
                       </option>
@@ -213,16 +264,18 @@ export function GasDashboard() {
                   <input
                     type="number"
                     step="0.0001"
-                    defaultValue="0.005"
+                    value={quickAmount}
+                    onChange={(e) => setQuickAmount(e.target.value)}
                     className="w-full bg-zinc-800/50 border border-zinc-700/50 p-2.5 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <button
-                  onClick={() => handleRefuelClick()}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white py-3 px-4 rounded-lg transition-all font-medium shadow-lg"
+                  onClick={() => {handleQuickRefuel} }
+                  disabled={!nexusReady}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white py-3 px-4 rounded-lg transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Quick Refuel
+                  {nexusReady ? 'Quick Refuel' : 'Connecting...'}
                 </button>
               </div>
             </div>
