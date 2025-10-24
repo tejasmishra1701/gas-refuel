@@ -22,50 +22,67 @@ export function ChainBalance({
 
   return (
     <div
-      className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-all group"
-      style={{ borderLeftColor: chain.color, borderLeftWidth: "3px" }}
+      className="bg-gradient-to-br from-zinc-900/90 to-zinc-950/90 border border-zinc-800/70 rounded-2xl p-6 hover:border-zinc-700 transition-all duration-300 group backdrop-blur-sm hover:shadow-xl hover:scale-[1.02] relative overflow-hidden"
+      style={{ borderLeftColor: chain.color, borderLeftWidth: "4px" }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{chain.icon}</span>
-          <div>
-            <h3 className="font-semibold text-white text-sm">{chain.name}</h3>
-            <p className="text-xs text-zinc-500">{chain.symbol}</p>
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none"></div>
+
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-zinc-800/50 flex items-center justify-center text-3xl border border-zinc-700/50 group-hover:scale-110 transition-transform">
+              {chain.icon}
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-base">{chain.name}</h3>
+              <p className="text-xs text-zinc-400 font-medium">
+                {chain.symbol}
+              </p>
+            </div>
           </div>
+          {isLow && (
+            <span className="text-xs bg-red-500/20 text-red-300 px-3 py-1.5 rounded-full font-semibold border border-red-500/30 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse"></span>
+              Low Gas
+            </span>
+          )}
         </div>
-        {isLow && (
-          <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full">
-            Low Gas
-          </span>
+
+        {/* Balance */}
+        {isLoading ? (
+          <div className="animate-pulse mb-5">
+            <div className="h-7 bg-zinc-800 rounded-lg w-32 mb-2"></div>
+            <div className="h-5 bg-zinc-800 rounded w-20"></div>
+          </div>
+        ) : (
+          <div className="mb-5">
+            <div className="text-2xl font-bold text-white mb-1">
+              {balanceStr} {chain.symbol}
+            </div>
+            <div className="text-sm text-zinc-400 font-medium">
+              {formatUSD(balanceStr)}
+            </div>
+          </div>
+        )}
+
+        {/* Action Button */}
+        {onRefuel && (
+          <button
+            onClick={onRefuel}
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-zinc-800/70 to-zinc-800/50 hover:from-blue-600/20 hover:to-purple-600/20 text-white py-3 px-4 rounded-xl transition-all text-sm font-semibold border border-zinc-700/70 hover:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed group-hover:shadow-lg"
+            style={{
+              background: isLoading
+                ? undefined
+                : `linear-gradient(135deg, ${chain.color}15, transparent)`,
+            }}
+          >
+            {isLoading ? "Loading..." : "⚡ Refuel"}
+          </button>
         )}
       </div>
-
-      {/* Balance */}
-      {isLoading ? (
-        <div className="animate-pulse mb-4">
-          <div className="h-6 bg-zinc-800 rounded w-24 mb-2"></div>
-          <div className="h-4 bg-zinc-800 rounded w-16"></div>
-        </div>
-      ) : (
-        <div className="mb-4">
-          <div className="text-xl font-bold text-white">
-            {balanceStr} {chain.symbol}
-          </div>
-          <div className="text-sm text-zinc-400">{formatUSD(balanceStr)}</div>
-        </div>
-      )}
-
-      {/* Action Button */}
-      {onRefuel && (
-        <button
-          onClick={onRefuel}
-          disabled={isLoading}
-          className="w-full bg-zinc-800/50 hover:bg-zinc-700/50 text-white py-2.5 px-4 rounded-lg transition-all text-sm font-medium border border-zinc-700/50 hover:border-zinc-600/50 disabled:opacity-50 disabled:cursor-not-allowed group-hover:bg-zinc-700/30"
-        >
-          {isLoading ? "Loading..." : "Refuel"}
-        </button>
-      )}
     </div>
   );
 }

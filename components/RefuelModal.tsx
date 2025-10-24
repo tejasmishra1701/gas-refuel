@@ -78,38 +78,41 @@ export function RefuelModal({
   const modalContent = (
     <>
       <div className="modal-backdrop" onClick={onClose} />
-      <div className="modal-content">
+      <div className="modal-content animate-fade-in">
         <div
-          className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-lg w-full mx-4 p-6 shadow-xl"
+          className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-700/50 rounded-3xl max-w-lg w-full mx-4 p-8 shadow-2xl animate-slide-up backdrop-blur-xl"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-start mb-8">
             <div>
-              <h2 className="text-xl font-bold text-white">Refuel Gas</h2>
+              <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                <span className="text-2xl">⛽</span>
+                Refuel Gas
+              </h2>
               <p className="text-sm text-zinc-400">
-                Transfer ETH between chains
+                Transfer ETH between chains instantly
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors"
+              className="text-zinc-400 hover:text-white p-2 rounded-xl hover:bg-zinc-800/50 transition-all hover:scale-110"
             >
-              ✕
+              <span className="text-xl">✕</span>
             </button>
           </div>
 
           <div className="space-y-6">
             {/* From Chain */}
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
+              <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
                 From Chain
               </label>
               <select
                 value={selectedSource}
                 onChange={(e) => setSelectedSource(e.target.value as ChainKey)}
-                className="w-full bg-zinc-800/50 border border-zinc-700/50 p-3 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 cursor-pointer"
               >
                 {CHAIN_ARRAY.map((chain) => (
                   <option key={chain.key} value={chain.key}>
@@ -120,15 +123,21 @@ export function RefuelModal({
               </select>
             </div>
 
+            <div className="flex justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                ↓
+              </div>
+            </div>
+
             {/* To Chain */}
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
+              <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
                 To Chain
               </label>
               <select
                 value={selectedTarget}
                 onChange={(e) => setSelectedTarget(e.target.value as ChainKey)}
-                className="w-full bg-zinc-800/50 border border-zinc-700/50 p-3 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 cursor-pointer"
               >
                 {CHAIN_ARRAY.filter(
                   (chain) => chain.key !== selectedSource
@@ -143,7 +152,7 @@ export function RefuelModal({
 
             {/* Amount */}
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
+              <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
                 Amount (ETH)
               </label>
               <input
@@ -152,22 +161,22 @@ export function RefuelModal({
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full bg-zinc-800/50 border border-zinc-700/50 p-3 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 text-lg font-semibold"
                 placeholder="0.005"
               />
             </div>
 
             {/* Quick Amount Buttons */}
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
+              <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
                 Quick Amounts
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 {GAS_PRESETS.slice(0, 4).map((preset) => (
                   <button
                     key={preset.label}
                     onClick={() => setAmount(preset.eth)}
-                    className="bg-zinc-800/50 hover:bg-zinc-700/50 text-white py-2 px-3 rounded-lg transition-colors text-sm border border-zinc-700/50 hover:border-zinc-600/50"
+                    className="bg-zinc-800/70 hover:bg-gradient-to-r hover:from-blue-600/30 hover:to-purple-600/30 text-white py-3 px-4 rounded-xl transition-all text-sm font-semibold border border-zinc-700/70 hover:border-blue-500/50 hover:scale-105"
                   >
                     {preset.label}
                   </button>
@@ -176,18 +185,18 @@ export function RefuelModal({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-4">
               <button
                 onClick={handleDoRefuel}
                 disabled={isRefueling || !amount || parseFloat(amount) <= 0}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white py-3 px-4 rounded-lg transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 hover:from-blue-500 hover:via-blue-600 hover:to-purple-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
               >
-                {isRefueling ? "Refueling..." : "Refuel Gas"}
+                {isRefueling ? "⏳ Refueling..." : "🚀 Refuel Gas"}
               </button>
 
               <button
                 onClick={onClose}
-                className="px-6 bg-zinc-800/50 hover:bg-zinc-700/50 text-white py-3 rounded-lg transition-colors font-medium border border-zinc-700/50 hover:border-zinc-600/50"
+                className="px-8 bg-zinc-800/70 hover:bg-zinc-700/70 text-white py-4 rounded-xl transition-all font-semibold border border-zinc-700/70 hover:border-zinc-600/70 hover:scale-105"
               >
                 Cancel
               </button>

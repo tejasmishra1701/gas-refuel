@@ -8,6 +8,7 @@ import { RefuelModal } from "./RefuelModal";
 import { CHAIN_ARRAY, ChainKey, CHAIN_MAP } from "@/lib/chains";
 import { formatBalance } from "@/lib/utils";
 import { initializeNexusSDK, bridgeTokens } from "@/lib/nexus";
+import toast, { Toaster } from "react-hot-toast";
 
 export function GasDashboard() {
   const { address, isConnected } = useAccount();
@@ -151,17 +152,26 @@ export function GasDashboard() {
     console.log("Amount:", quickAmount);
 
     if (!nexusReady) {
-      alert("⚠️ Nexus SDK is still initializing. Please wait.");
+      toast.error("Nexus SDK is still initializing. Please wait.", {
+        icon: "⏳",
+        duration: 4000,
+      });
       return;
     }
 
     if (!quickAmount || parseFloat(quickAmount) <= 0) {
-      alert("⚠️ Please enter a valid amount.");
+      toast.error("Please enter a valid amount.", {
+        icon: "⚠️",
+        duration: 4000,
+      });
       return;
     }
 
     if (quickSourceChain === quickTargetChain) {
-      alert("⚠️ Source and target chains cannot be the same.");
+      toast.error("Source and target chains cannot be the same.", {
+        icon: "⚠️",
+        duration: 4000,
+      });
       return;
     }
 
@@ -176,12 +186,21 @@ export function GasDashboard() {
     amount: string
   ) => {
     if (!walletClient || !address) {
-      alert("⚠️ Wallet not connected");
+      toast.error("Wallet not connected", {
+        icon: "⚠️",
+        duration: 4000,
+      });
       return;
     }
 
     if (!nexusReady) {
-      alert("⚠️ Nexus SDK is still initializing. Please wait and try again.");
+      toast.error(
+        "Nexus SDK is still initializing. Please wait and try again.",
+        {
+          icon: "⏳",
+          duration: 4000,
+        }
+      );
       return;
     }
 
@@ -196,9 +215,17 @@ export function GasDashboard() {
       const toChain = CHAIN_MAP[targetChain];
 
       if (!fromChain || !toChain) {
-        alert("Invalid chain selection.");
+        toast.error("Invalid chain selection.", {
+          icon: "⚠️",
+          duration: 4000,
+        });
         return;
       }
+
+      // Show loading toast
+      const loadingToast = toast.loading("Processing refuel transaction...", {
+        icon: "🔄",
+      });
 
       // Trigger Nexus transfer
       const result = await bridgeTokens({
@@ -211,19 +238,50 @@ export function GasDashboard() {
       console.log("✅ Refuel Result:", result);
 
       if (result.success) {
-        alert(
-          `✅ Refuel Successful!\n\n` +
-            `From: ${fromChain.name}\n` +
-            `To: ${toChain.name}\n` +
-            `Amount: ${amount} ETH\n\n` +
-            `${
-              result.transactionHash ? "Tx: " + result.transactionHash : ""
-            }\n` +
-            `${result.explorerUrl ? result.explorerUrl : ""}`
+        toast.dismiss(loadingToast);
+
+        toast.success(
+          (t) => (
+            <div className="flex flex-col gap-2">
+              <div className="font-bold text-lg">🎉 Refuel Successful!</div>
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">From:</span>
+                  <span className="font-semibold">{fromChain.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">To:</span>
+                  <span className="font-semibold">{toChain.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Amount:</span>
+                  <span className="font-semibold">{amount} ETH</span>
+                </div>
+              </div>
+              {result.explorerUrl && (
+                <a
+                  href={result.explorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-400 hover:text-blue-300 underline mt-2"
+                  onClick={() => toast.dismiss(t.id)}
+                >
+                  View on Explorer →
+                </a>
+              )}
+            </div>
+          ),
+          {
+            duration: 8000,
+            style: {
+              maxWidth: "500px",
+            },
+          }
         );
 
         setTimeout(() => window.location.reload(), 5000);
       } else {
+        toast.dismiss(loadingToast);
         throw new Error(result.error || "Transfer failed");
       }
     } catch (error: unknown) {
@@ -237,17 +295,31 @@ export function GasDashboard() {
       if (errorMsg.includes("denied") || errorMsg.includes("rejected"))
         errorMsg = "Transaction rejected";
 
-      alert(`❌ Refuel Failed\n\n${errorMsg}`);
+      toast.error(errorMsg, {
+        icon: "❌",
+        duration: 6000,
+      });
     }
   };
 
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-zinc-400">Loading...</p>
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse-slow"></div>
+          <div
+            className="absolute bottom-1/4 -left-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse-slow"
+            style={{ animationDelay: "1s" }}
+          ></div>
+        </div>
+
+        <div className="text-center relative z-10">
+          <div className="text-6xl mb-6 animate-pulse">⛽</div>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-zinc-800 border-t-blue-500 mx-auto mb-6"></div>
+          </div>
+          <p className="text-zinc-400 text-lg font-medium">Loading...</p>
         </div>
       </div>
     );
@@ -255,172 +327,257 @@ export function GasDashboard() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black flex items-center justify-center p-6">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-6">⛽</div>
-          <h1 className="text-4xl font-bold mb-4 text-white">Gas Refuel</h1>
-          <p className="text-zinc-400 mb-8 text-lg">
-            Never run out of gas on any chain
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black flex items-center justify-center p-6 relative overflow-hidden">
+        {/* Animated background gradient orbs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse-slow"></div>
+          <div
+            className="absolute bottom-1/4 -left-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse-slow"
+            style={{ animationDelay: "1s" }}
+          ></div>
+        </div>
+
+        <div className="text-center max-w-lg relative z-10 animate-fade-in">
+          <div className="text-8xl mb-8 animate-pulse-slow">⛽</div>
+          <h1 className="text-5xl font-bold mb-6 text-white bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+            Gas Refuel
+          </h1>
+          <p className="text-zinc-400 mb-10 text-xl leading-relaxed">
+            Never run out of gas on any chain.
+            <br />
+            <span className="text-zinc-500 text-base">
+              Bridge ETH seamlessly across multiple networks.
+            </span>
           </p>
-          <ConnectButton />
+          <div className="flex justify-center scale-110 hover:scale-125 transition-transform">
+            <ConnectButton />
+          </div>
+
+          {/* Feature badges */}
+          <div className="mt-12 flex flex-wrap justify-center gap-3">
+            <span className="px-4 py-2 bg-zinc-900/50 border border-zinc-800/50 rounded-full text-sm text-zinc-400 backdrop-blur-sm">
+              🚀 Fast Transfers
+            </span>
+            <span className="px-4 py-2 bg-zinc-900/50 border border-zinc-800/50 rounded-full text-sm text-zinc-400 backdrop-blur-sm">
+              🔒 Secure
+            </span>
+            <span className="px-4 py-2 bg-zinc-900/50 border border-zinc-800/50 rounded-full text-sm text-zinc-400 backdrop-blur-sm">
+              ⚡ Low Fees
+            </span>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black">
-      <div className="max-w-6xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              ⛽ Gas Dashboard
-            </h1>
-            <p className="text-zinc-400">
-              Manage your cross-chain gas efficiently
-            </p>
-          </div>
-          <ConnectButton />
+    <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: "#18181b",
+            color: "#fff",
+            border: "1px solid #27272a",
+            borderRadius: "12px",
+            padding: "16px",
+          },
+          success: {
+            iconTheme: {
+              primary: "#22c55e",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black relative overflow-hidden">
+        {/* Animated background gradient orbs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-600/20 rounded-full blur-3xl animate-pulse-slow"></div>
+          <div
+            className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl animate-pulse-slow"
+            style={{ animationDelay: "1s" }}
+          ></div>
         </div>
 
-        {/* Total Balance Card */}
-        <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-6 mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4 animate-fade-in">
             <div>
-              <p className="text-blue-100 text-sm mb-2">Total Gas Balance</p>
-              <p className="text-4xl font-bold text-white mb-1">
-                {totalBalance} ETH
+              <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
+                <span className="text-5xl">⛽</span> Gas Dashboard
+              </h1>
+              <p className="text-zinc-400 text-lg">
+                Manage your cross-chain gas efficiently
               </p>
-              <div className="flex items-center gap-2">
-                {nexusReady ? (
-                  <span className="text-xs text-green-200">
-                    ✅ Cross-chain ready
-                  </span>
-                ) : (
-                  <span className="text-xs text-yellow-200">
-                    ⏳ Initializing...
-                  </span>
-                )}
+            </div>
+            <div className="scale-105 hover:scale-110 transition-transform">
+              <ConnectButton />
+            </div>
+          </div>
+
+          {/* Total Balance Card */}
+          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-3xl p-8 mb-10 shadow-2xl border border-blue-500/20 backdrop-blur-xl animate-slide-up hover:shadow-blue-500/20 transition-all duration-300 hover:scale-[1.02]">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+              <div>
+                <p className="text-blue-100 text-sm font-medium mb-3 uppercase tracking-wider">
+                  Total Gas Balance
+                </p>
+                <p className="text-5xl font-bold text-white mb-2 tracking-tight">
+                  {totalBalance} ETH
+                </p>
+                <div className="flex items-center gap-3">
+                  {nexusReady ? (
+                    <span className="text-sm text-green-300 bg-green-500/20 px-3 py-1 rounded-full flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                      Cross-chain ready
+                    </span>
+                  ) : (
+                    <span className="text-sm text-yellow-300 bg-yellow-500/20 px-3 py-1 rounded-full flex items-center gap-2">
+                      <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                      Initializing...
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-            <button
-              onClick={() => handleRefuelClick()}
-              disabled={!nexusReady}
-              className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-medium transition-colors backdrop-blur-sm border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Refuel Multiple Chains
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Chain Balances */}
-          <div className="xl:col-span-2">
-            <h2 className="text-xl font-semibold text-white mb-6">
-              Your Chains
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {CHAIN_ARRAY.map((chain) => (
-                <ChainBalance
-                  key={chain.key}
-                  chainKey={chain.key}
-                  balance={balances[chain.key]}
-                  isLoading={isLoading}
-                  onRefuel={() => handleRefuelClick(chain.key)}
-                />
-              ))}
+              <button
+                onClick={() => handleRefuelClick()}
+                disabled={!nexusReady}
+                className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-semibold transition-all backdrop-blur-sm border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                Refuel Multiple Chains
+              </button>
             </div>
           </div>
 
-          {/* Quick Refuel Section */}
-          <div className="xl:sticky xl:top-6">
-            <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-xl font-bold mb-6 text-white">
-                Quick Refuel
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            {/* Chain Balances */}
+            <div className="xl:col-span-2">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <span className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></span>
+                Your Chains
               </h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
-                    From
-                  </label>
-                  <select
-                    value={quickSourceChain}
-                    onChange={(e) =>
-                      setQuickSourceChain(e.target.value as ChainKey)
-                    }
-                    className="w-full bg-zinc-800/50 border border-zinc-700/50 p-3 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {CHAIN_ARRAY.map((chain, index) => (
+                  <div
+                    key={chain.key}
+                    className="animate-slide-up"
+                    style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    {CHAIN_ARRAY.filter((c) => c.key !== quickTargetChain).map(
-                      (chain) => (
+                    <ChainBalance
+                      chainKey={chain.key}
+                      balance={balances[chain.key]}
+                      isLoading={isLoading}
+                      onRefuel={() => handleRefuelClick(chain.key)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Refuel Section */}
+            <div className="xl:sticky xl:top-6 xl:h-fit">
+              <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-xl border border-zinc-700/50 rounded-3xl p-8 shadow-2xl hover:border-zinc-600/50 transition-all duration-300 hover:shadow-blue-500/10">
+                <h2 className="text-2xl font-bold mb-8 text-white flex items-center gap-2">
+                  <span className="text-2xl">⚡</span>
+                  Quick Refuel
+                </h2>
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
+                      From
+                    </label>
+                    <select
+                      value={quickSourceChain}
+                      onChange={(e) =>
+                        setQuickSourceChain(e.target.value as ChainKey)
+                      }
+                      className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 cursor-pointer"
+                    >
+                      {CHAIN_ARRAY.filter(
+                        (c) => c.key !== quickTargetChain
+                      ).map((chain) => (
                         <option key={chain.key} value={chain.key}>
                           {chain.name} ({formatBalance(balances[chain.key])}{" "}
                           ETH)
                         </option>
-                      )
-                    )}
-                  </select>
-                </div>
+                      ))}
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
-                    To
-                  </label>
-                  <select
-                    value={quickTargetChain}
-                    onChange={(e) =>
-                      setQuickTargetChain(e.target.value as ChainKey)
-                    }
-                    className="w-full bg-zinc-800/50 border border-zinc-700/50 p-3 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  >
-                    {CHAIN_ARRAY.filter((c) => c.key !== quickSourceChain).map(
-                      (chain) => (
+                  <div className="flex justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                      ↓
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
+                      To
+                    </label>
+                    <select
+                      value={quickTargetChain}
+                      onChange={(e) =>
+                        setQuickTargetChain(e.target.value as ChainKey)
+                      }
+                      className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 cursor-pointer"
+                    >
+                      {CHAIN_ARRAY.filter(
+                        (c) => c.key !== quickSourceChain
+                      ).map((chain) => (
                         <option key={chain.key} value={chain.key}>
                           {chain.name} ({formatBalance(balances[chain.key])}{" "}
                           ETH)
                         </option>
-                      )
-                    )}
-                  </select>
-                </div>
+                      ))}
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
-                    Amount (ETH)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.0001"
-                    value={quickAmount}
-                    onChange={(e) => setQuickAmount(e.target.value)}
-                    className="w-full bg-zinc-800/50 border border-zinc-700/50 p-3 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="0.05"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
+                      Amount (ETH)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.0001"
+                      value={quickAmount}
+                      onChange={(e) => setQuickAmount(e.target.value)}
+                      className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 text-lg font-semibold"
+                      placeholder="0.05"
+                    />
+                  </div>
 
-                <button
-                  onClick={handleQuickRefuel}
-                  disabled={!nexusReady}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white py-3 px-4 rounded-lg transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {nexusReady ? "Quick Refuel" : "Connecting..."}
-                </button>
+                  <button
+                    onClick={handleQuickRefuel}
+                    disabled={!nexusReady}
+                    className="w-full bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 hover:from-blue-500 hover:via-blue-600 hover:to-purple-600 text-white py-4 px-6 rounded-xl transition-all font-bold text-lg shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 hover:shadow-blue-500/30"
+                  >
+                    {nexusReady ? "🚀 Quick Refuel" : "⏳ Connecting..."}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Modal */}
-        {isModalOpen && (
-          <RefuelModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            targetChain={targetChain}
-            balances={balances}
-            onRefuel={handleRefuel}
-          />
-        )}
+          {/* Modal */}
+          {isModalOpen && (
+            <RefuelModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              targetChain={targetChain}
+              balances={balances}
+              onRefuel={handleRefuel}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
