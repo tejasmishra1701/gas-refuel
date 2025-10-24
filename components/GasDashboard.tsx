@@ -294,11 +294,11 @@ export function GasDashboard() {
               </p>
               <div className="flex items-center gap-2">
                 {nexusReady ? (
-                  <span className="text-xs text-green-200">
+                  <span className="status-indicator status-success">
                     ✅ Cross-chain ready
                   </span>
                 ) : (
-                  <span className="text-xs text-yellow-200">
+                  <span className="status-indicator status-warning">
                     ⏳ Initializing...
                   </span>
                 )}
@@ -307,7 +307,7 @@ export function GasDashboard() {
             <button
               onClick={() => handleRefuelClick()}
               disabled={!nexusReady}
-              className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-medium transition-colors backdrop-blur-sm border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Refuel Multiple Chains
             </button>
@@ -349,7 +349,7 @@ export function GasDashboard() {
                     onChange={(e) =>
                       setQuickSourceChain(e.target.value as ChainKey)
                     }
-                    className="w-full bg-zinc-800/50 border border-zinc-700/50 p-3 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full input-field"
                   >
                     {CHAIN_ARRAY.filter((c) => c.key !== quickTargetChain).map(
                       (chain) => (
@@ -371,7 +371,7 @@ export function GasDashboard() {
                     onChange={(e) =>
                       setQuickTargetChain(e.target.value as ChainKey)
                     }
-                    className="w-full bg-zinc-800/50 border border-zinc-700/50 p-3 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full input-field"
                   >
                     {CHAIN_ARRAY.filter((c) => c.key !== quickSourceChain).map(
                       (chain) => (
@@ -393,7 +393,7 @@ export function GasDashboard() {
                     step="0.0001"
                     value={quickAmount}
                     onChange={(e) => setQuickAmount(e.target.value)}
-                    className="w-full bg-zinc-800/50 border border-zinc-700/50 p-3 rounded-lg text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full input-field"
                     placeholder="0.05"
                   />
                 </div>
@@ -401,7 +401,7 @@ export function GasDashboard() {
                 <button
                   onClick={handleQuickRefuel}
                   disabled={!nexusReady}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white py-3 px-4 rounded-lg transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {nexusReady ? "Quick Refuel" : "Connecting..."}
                 </button>

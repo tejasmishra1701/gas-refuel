@@ -22,7 +22,7 @@ export function ChainBalance({
 
   return (
     <div
-      className="glass-effect rounded-xl p-4 hover:border-white/20 transition-all group hover:scale-105 hover:shadow-lg"
+      className="card animate-slide-in"
       style={{ borderLeftColor: chain.color, borderLeftWidth: "3px" }}
     >
       {/* Header */}
@@ -35,9 +35,7 @@ export function ChainBalance({
           </div>
         </div>
         {isLow && (
-          <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full">
-            Low Gas
-          </span>
+          <span className="status-indicator status-danger">⚠️ Low Gas</span>
         )}
       </div>
 
@@ -61,7 +59,7 @@ export function ChainBalance({
         <button
           onClick={onRefuel}
           disabled={isLoading}
-          className="w-full bg-gradient-to-r from-blue-600/20 to-purple-600/20 hover:from-blue-600/30 hover:to-purple-600/30 text-white py-2.5 px-4 rounded-lg transition-all text-sm font-medium border border-white/20 hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed group-hover:shadow-lg"
+          className="w-full btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? "Loading..." : "Refuel"}
         </button>
