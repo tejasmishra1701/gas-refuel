@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { formatBalance, formatUSD } from '@/lib/utils';
-import { SUPPORTED_CHAINS, ChainKey } from '@/lib/chains';
+import { formatBalance, formatUSD } from "@/lib/utils";
+import { SUPPORTED_CHAINS, ChainKey } from "@/lib/chains";
 
 interface ChainBalanceProps {
   chainKey: ChainKey;
@@ -10,54 +10,60 @@ interface ChainBalanceProps {
   onRefuel?: () => void;
 }
 
-export function ChainBalance({ chainKey, balance, isLoading, onRefuel }: ChainBalanceProps) {
+export function ChainBalance({
+  chainKey,
+  balance,
+  isLoading,
+  onRefuel,
+}: ChainBalanceProps) {
   const chain = SUPPORTED_CHAINS[chainKey];
   const balanceStr = formatBalance(balance);
   const isLow = balance < BigInt(5e15); // Less than 0.005 ETH
 
   return (
-    <div 
-      className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-all"
-      style={{ borderLeftColor: chain.color, borderLeftWidth: '3px' }}
+    <div
+      className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-all group"
+      style={{ borderLeftColor: chain.color, borderLeftWidth: "3px" }}
     >
-      <div className="flex items-start justify-between mb-3">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <span className="text-3xl">{chain.icon}</span>
+          <span className="text-2xl">{chain.icon}</span>
           <div>
-            <h3 className="font-semibold text-white">{chain.name}</h3>
-            <p className="text-sm text-zinc-500">{chain.symbol}</p>
+            <h3 className="font-semibold text-white text-sm">{chain.name}</h3>
+            <p className="text-xs text-zinc-500">{chain.symbol}</p>
           </div>
         </div>
         {isLow && (
-          <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">
+          <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full">
             Low Gas
           </span>
         )}
       </div>
 
+      {/* Balance */}
       {isLoading ? (
-        <div className="animate-pulse">
-          <div className="h-8 bg-zinc-800 rounded w-32 mb-2"></div>
-          <div className="h-4 bg-zinc-800 rounded w-20"></div>
+        <div className="animate-pulse mb-4">
+          <div className="h-6 bg-zinc-800 rounded w-24 mb-2"></div>
+          <div className="h-4 bg-zinc-800 rounded w-16"></div>
         </div>
       ) : (
-        <>
-          <div className="text-2xl font-bold text-white mb-1">
+        <div className="mb-4">
+          <div className="text-xl font-bold text-white">
             {balanceStr} {chain.symbol}
           </div>
-          <div className="text-sm text-zinc-400 mb-4">
-            {formatUSD(balanceStr)}
-          </div>
-        </>
+          <div className="text-sm text-zinc-400">{formatUSD(balanceStr)}</div>
+        </div>
       )}
 
+      {/* Action Button */}
       {onRefuel && (
         <button
           onClick={onRefuel}
           disabled={isLoading}
-          className="w-full bg-zinc-800 hover:bg-zinc-700 text-white py-2 px-4 rounded-lg transition-colors disabled:opacity-50 text-sm font-medium"
+          className="w-full bg-zinc-800/50 hover:bg-zinc-700/50 text-white py-2.5 px-4 rounded-lg transition-all text-sm font-medium border border-zinc-700/50 hover:border-zinc-600/50 disabled:opacity-50 disabled:cursor-not-allowed group-hover:bg-zinc-700/30"
         >
-          Refuel This Chain
+          {isLoading ? "Loading..." : "Refuel"}
         </button>
       )}
     </div>
