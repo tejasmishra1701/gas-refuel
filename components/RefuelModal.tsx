@@ -80,7 +80,7 @@ export function RefuelModal({
       <div className="modal-backdrop" onClick={onClose} />
       <div className="modal-content">
         <div
-          className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-lg w-full mx-4 p-6 shadow-xl"
+          className="glass-effect rounded-2xl max-w-lg w-full mx-4 p-6 shadow-2xl border border-white/20"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"

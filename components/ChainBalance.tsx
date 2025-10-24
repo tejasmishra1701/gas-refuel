@@ -22,7 +22,7 @@ export function ChainBalance({
 
   return (
     <div
-      className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-all group"
+      className="glass-effect rounded-xl p-4 hover:border-white/20 transition-all group hover:scale-105 hover:shadow-lg"
       style={{ borderLeftColor: chain.color, borderLeftWidth: "3px" }}
     >
       {/* Header */}
@@ -61,7 +61,7 @@ export function ChainBalance({
         <button
           onClick={onRefuel}
           disabled={isLoading}
-          className="w-full bg-zinc-800/50 hover:bg-zinc-700/50 text-white py-2.5 px-4 rounded-lg transition-all text-sm font-medium border border-zinc-700/50 hover:border-zinc-600/50 disabled:opacity-50 disabled:cursor-not-allowed group-hover:bg-zinc-700/30"
+          className="w-full bg-gradient-to-r from-blue-600/20 to-purple-600/20 hover:from-blue-600/30 hover:to-purple-600/30 text-white py-2.5 px-4 rounded-lg transition-all text-sm font-medium border border-white/20 hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed group-hover:shadow-lg"
         >
           {isLoading ? "Loading..." : "Refuel"}
         </button>

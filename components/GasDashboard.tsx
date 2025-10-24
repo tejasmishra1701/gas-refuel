@@ -269,7 +269,7 @@ export function GasDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
@@ -285,7 +285,7 @@ export function GasDashboard() {
         </div>
 
         {/* Total Balance Card */}
-        <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-6 mb-8">
+        <div className="glass-effect rounded-2xl p-6 mb-8 border border-white/10 shadow-2xl">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p className="text-blue-100 text-sm mb-2">Total Gas Balance</p>
@@ -335,7 +335,7 @@ export function GasDashboard() {
 
           {/* Quick Refuel Section */}
           <div className="xl:sticky xl:top-6">
-            <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 rounded-2xl p-6 shadow-xl">
+            <div className="glass-effect rounded-2xl p-6 shadow-xl border border-white/10">
               <h2 className="text-xl font-bold mb-6 text-white">
                 Quick Refuel
               </h2>
