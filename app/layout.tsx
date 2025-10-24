@@ -6,7 +6,7 @@ import { Providers } from "@/components/Providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Gas Refuel - Never Run Out of Gas",
+  title: "Gas Refuel",
   description: "Cross-chain gas refueling powered by Avail Nexus",
 };
 
