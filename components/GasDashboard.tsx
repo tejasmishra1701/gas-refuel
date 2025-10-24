@@ -33,7 +33,7 @@ export function GasDashboard() {
   // Fix hydration by ensuring client-side rendering
   useEffect(() => {
     setMounted(true);
-    
+
     // Cleanup function
     return () => {
       setMounted(false);
@@ -43,7 +43,7 @@ export function GasDashboard() {
   // ✅ Initialize Nexus SDK when wallet connects
   useEffect(() => {
     if (!mounted) return;
-    
+
     if (walletClient && !nexusReady) {
       initializeNexusSDK(walletClient)
         .then(() => {
@@ -86,7 +86,7 @@ export function GasDashboard() {
   useEffect(() => {
     // Prevent state updates if component is unmounted
     if (!mounted) return;
-    
+
     if (!address || !isConnected) {
       setIsLoading(false);
       return;
