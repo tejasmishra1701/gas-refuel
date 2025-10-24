@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   env: {
     // Suppress Lit dev mode warnings
-    LIT_DEV_MODE: 'false',
+    LIT_DEV_MODE: "false",
   },
   webpack: (config, { isServer }) => {
     // Suppress Lit dev mode warnings
@@ -17,13 +17,13 @@ const nextConfig: NextConfig = {
         tls: false,
       };
     }
-    
+
     // Suppress specific warnings
     config.ignoreWarnings = [
       /Module not found: Can't resolve '@react-native-async-storage\/async-storage'/,
       /Module not found: Can't resolve 'pino-pretty'/,
     ];
-    
+
     return config;
   },
   // Suppress specific warnings

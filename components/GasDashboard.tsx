@@ -33,22 +33,33 @@ export function GasDashboard() {
   // Fix hydration by ensuring client-side rendering
   useEffect(() => {
     setMounted(true);
+    
+    // Cleanup function
+    return () => {
+      setMounted(false);
+    };
   }, []);
 
   // ✅ Initialize Nexus SDK when wallet connects
   useEffect(() => {
+    if (!mounted) return;
+    
     if (walletClient && !nexusReady) {
       initializeNexusSDK(walletClient)
         .then(() => {
-          console.log("✅ Nexus SDK initialized");
-          setNexusReady(true);
+          if (mounted) {
+            console.log("✅ Nexus SDK initialized");
+            setNexusReady(true);
+          }
         })
         .catch((err) => {
-          console.error("❌ Nexus init error:", err);
-          setNexusReady(false);
+          if (mounted) {
+            console.error("❌ Nexus init error:", err);
+            setNexusReady(false);
+          }
         });
     }
-  }, [walletClient, nexusReady]);
+  }, [mounted, walletClient, nexusReady]);
 
   // ✅ Use wagmi hooks to fetch balances for each chain
   const sepoliaBalance = useBalance({
@@ -73,6 +84,9 @@ export function GasDashboard() {
 
   // ✅ Update balances when wagmi data changes
   useEffect(() => {
+    // Prevent state updates if component is unmounted
+    if (!mounted) return;
+    
     if (!address || !isConnected) {
       setIsLoading(false);
       return;
@@ -110,6 +124,7 @@ export function GasDashboard() {
 
     setIsLoading(isLoading);
   }, [
+    mounted,
     address,
     isConnected,
     sepoliaBalance.data?.value,
