@@ -179,10 +179,10 @@ function NexusWidgetsContent({
           <h3 className="text-lg font-semibold text-white mb-4">Swap Widget</h3>
           <SwapButton
             prefill={{
-              fromChainID: 11155111, // Ethereum Sepolia
-              toChainID: 84532, // Base Sepolia
-              fromTokenAddress: "ETH",
-              toTokenAddress: "USDC",
+              fromChainId: 11155111, // Ethereum Sepolia
+              toChainId: 84532, // Base Sepolia
+              fromToken: "ETH",
+              toToken: "USDC",
               fromAmount: "0.01",
             }}
             title="Swap ETH to USDC with Nexus Widget"

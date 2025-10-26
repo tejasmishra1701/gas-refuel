@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { useAccount, useWalletClient, useBalance } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChainBalance } from "./ChainBalance";
@@ -54,10 +60,13 @@ export function GasDashboard() {
 
   // Fix hydration by ensuring client-side rendering
   useEffect(() => {
-    setMounted(true);
+    // Use a small delay to ensure hydration is complete
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 100);
 
-    // Cleanup function
     return () => {
+      clearTimeout(timer);
       setMounted(false);
     };
   }, []);
@@ -252,13 +261,13 @@ export function GasDashboard() {
     return () => clearInterval(interval);
   }, [address, isConnected, refreshBalances]);
 
-  // ✅ Update balances when wagmi data changes
-  useEffect(() => {
-    // Prevent state updates if component is unmounted or during hydration
+  // ✅ Update balances when wagmi data changes - using useLayoutEffect for hydration safety
+  useLayoutEffect(() => {
+    // Only run after hydration is complete
     if (!mounted) return;
 
-    // Add a small delay to prevent state updates during hydration
-    const timeoutId = setTimeout(() => {
+    // Use requestAnimationFrame to ensure we're after the render cycle
+    const updateBalances = () => {
       if (!address || !isConnected) {
         setIsLoading(false);
         return;
@@ -300,9 +309,12 @@ export function GasDashboard() {
         mantleSepoliaBalance.isLoading;
 
       setIsLoading(isLoading);
-    }, 0); // Use setTimeout to defer the state update
+    };
 
-    return () => clearTimeout(timeoutId);
+    // Use requestAnimationFrame to ensure we're after hydration
+    const rafId = requestAnimationFrame(updateBalances);
+
+    return () => cancelAnimationFrame(rafId);
   }, [
     mounted,
     address,
@@ -870,6 +882,26 @@ export function GasDashboard() {
               ⚡ Low Fees
             </span>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Prevent rendering during hydration to avoid state update conflicts
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-600/20 rounded-full blur-3xl animate-pulse-slow"></div>
+          <div
+            className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl animate-pulse-slow"
+            style={{ animationDelay: "1s" }}
+          ></div>
+        </div>
+        <div className="text-center z-10">
+          <div className="text-6xl mb-4 opacity-50">⛽</div>
+          <h1 className="text-4xl font-display text-white mb-2">FuelFlow</h1>
+          <p className="text-zinc-400 text-lg">Loading...</p>
         </div>
       </div>
     );

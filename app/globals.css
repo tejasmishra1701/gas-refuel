@@ -164,3 +164,35 @@ body.modal-open {
   position: relative !important;
   z-index: 9999 !important;
 }
+
+/* RainbowKit Connect Button Dialog Positioning */
+[data-rk] {
+  z-index: 9999 !important;
+}
+
+/* RainbowKit Modal Positioning */
+[data-rk] [role="dialog"] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+}
+
+/* RainbowKit Connect Button Container */
+[data-rk] > div {
+  position: relative !important;
+}
+
+/* RainbowKit Modal Backdrop */
+[data-rk] [role="dialog"]::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: -1;
+}
