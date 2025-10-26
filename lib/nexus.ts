@@ -1,6 +1,23 @@
 import { NexusSDK } from "@avail-project/nexus-core";
 import type { WalletClient } from "viem";
 import type { UserAsset } from "@avail-project/nexus-core";
+import { CHAIN_MAP, ChainKey } from "./chains";
+
+// Helper function to generate explorer URL for a transaction hash
+const getExplorerUrl = (chainId: number, txHash: string): string => {
+  // Find the chain by ID
+  const chainEntry = Object.entries(CHAIN_MAP).find(
+    ([_, chain]) => chain.id === chainId
+  );
+
+  if (chainEntry) {
+    const [chainKey, chain] = chainEntry;
+    return `${chain.explorer}/tx/${txHash}`;
+  }
+
+  // Fallback to Etherscan if chain not found
+  return `https://sepolia.etherscan.io/tx/${txHash}`;
+};
 
 class NexusService {
   private sdk: NexusSDK;
@@ -139,7 +156,7 @@ class NexusService {
           success: true,
           txHash: mockTxHash,
           transactionHash: mockTxHash,
-          explorerUrl: `https://sepolia.etherscan.io/tx/${mockTxHash}`,
+          explorerUrl: getExplorerUrl(params.fromChainId, mockTxHash),
           message: "Mock bridge transaction (SDK unavailable)",
         };
       }
@@ -212,7 +229,7 @@ class NexusService {
           executeResult: { success: true, action: params.executeAction },
           txHash: mockTxHash,
           transactionHash: mockTxHash,
-          explorerUrl: `https://sepolia.etherscan.io/tx/${mockTxHash}`,
+          explorerUrl: getExplorerUrl(params.fromChainId, mockTxHash),
           message: `Mock Bridge & Execute: ${params.executeAction} (SDK unavailable)`,
         };
       }

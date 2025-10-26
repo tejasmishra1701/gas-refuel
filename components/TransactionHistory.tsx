@@ -15,6 +15,21 @@ export interface Transaction {
   explorerUrl?: string;
 }
 
+// Helper function to get explorer name for each chain
+const getExplorerName = (chainKey: ChainKey): string => {
+  const explorerNames: Record<ChainKey, string> = {
+    sepolia: "Etherscan",
+    baseSepolia: "Basescan",
+    arbitrumSepolia: "Arbiscan",
+    optimismSepolia: "Etherscan",
+    polygonAmoy: "Polygonscan",
+    scrollSepolia: "Scrollscan",
+    lineaSepolia: "Lineascan",
+    mantleSepolia: "Mantlescan",
+  };
+  return explorerNames[chainKey] || "Explorer";
+};
+
 interface TransactionHistoryProps {
   transactions: Transaction[];
   isLoading?: boolean;
@@ -71,6 +86,15 @@ export function TransactionHistory({
     if (hours > 0) return `${hours}h ago`;
     if (minutes > 0) return `${minutes}m ago`;
     return "Just now";
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // You could add a toast notification here if needed
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
   };
 
   if (isLoading) {
@@ -177,7 +201,7 @@ export function TransactionHistory({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-400 hover:text-blue-300 transition-colors"
-                        title="View on Explorer"
+                        title={`View on ${getExplorerName(tx.fromChain)}`}
                       >
                         <svg
                           className="w-4 h-4"
@@ -208,38 +232,101 @@ export function TransactionHistory({
 
                 {(tx.hash || tx.explorerUrl) && (
                   <div className="mt-3 pt-3 border-t border-zinc-700/50">
-                    <div className="flex items-center justify-between gap-2 text-xs">
+                    <div className="space-y-2">
                       {tx.hash && (
-                        <div className="flex items-center gap-2 text-zinc-500">
-                          <span>Hash:</span>
-                          <code className="bg-zinc-900/50 px-2 py-1 rounded font-mono">
-                            {tx.hash.slice(0, 10)}...{tx.hash.slice(-8)}
-                          </code>
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <div className="flex items-center gap-2 text-zinc-500">
+                            <span>Transaction Hash:</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <code
+                              className="bg-zinc-900/50 px-2 py-1 rounded font-mono text-zinc-300 cursor-pointer hover:bg-zinc-800/70 transition-colors"
+                              onClick={() => copyToClipboard(tx.hash!)}
+                              title="Click to copy full hash"
+                            >
+                              {tx.hash}
+                            </code>
+                            <button
+                              onClick={() => copyToClipboard(tx.hash!)}
+                              className="text-zinc-400 hover:text-zinc-300 transition-colors"
+                              title="Copy hash"
+                            >
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       )}
                       {tx.explorerUrl && (
-                        <a
-                          href={tx.explorerUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
-                          title="View on Explorer"
-                        >
-                          <svg
-                            className="w-3 h-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                            />
-                          </svg>
-                          Explorer
-                        </a>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-2 text-xs">
+                            <div className="text-zinc-500">Explorer:</div>
+                            <a
+                              href={tx.explorerUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                              title={`View on ${getExplorerName(tx.fromChain)}`}
+                            >
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                />
+                              </svg>
+                              View on {getExplorerName(tx.fromChain)}
+                            </a>
+                          </div>
+                          <div className="flex items-center justify-between gap-2 text-xs">
+                            <div className="text-zinc-500">URL:</div>
+                            <div className="flex items-center gap-2">
+                              <code
+                                className="bg-zinc-900/50 px-2 py-1 rounded font-mono text-zinc-300 cursor-pointer hover:bg-zinc-800/70 transition-colors text-xs max-w-xs truncate"
+                                onClick={() => copyToClipboard(tx.explorerUrl!)}
+                                title="Click to copy full URL"
+                              >
+                                {tx.explorerUrl}
+                              </code>
+                              <button
+                                onClick={() => copyToClipboard(tx.explorerUrl!)}
+                                className="text-zinc-400 hover:text-zinc-300 transition-colors"
+                                title="Copy URL"
+                              >
+                                <svg
+                                  className="w-3 h-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
