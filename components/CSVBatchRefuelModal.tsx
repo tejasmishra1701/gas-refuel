@@ -5,14 +5,12 @@ import { createPortal } from "react-dom";
 import { SUPPORTED_CHAINS, CHAIN_ARRAY, ChainKey } from "@/lib/chains";
 import { formatBalance } from "@/lib/utils";
 import {
-  parseCSV,
   downloadSampleCSV,
   formatAddress,
   validateAddress,
   validateAmount,
   type ParsedCSV,
   type CSVRecipient,
-  type CSVUploadOptions,
 } from "@/lib/csvParser";
 
 interface CSVBatchRefuelModalProps {
@@ -32,7 +30,6 @@ export function CSVBatchRefuelModal({
   balances,
   onCSVBatchRefuel,
 }: CSVBatchRefuelModalProps) {
-  const [csvFile, setCsvFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedCSV | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,13 +39,11 @@ export function CSVBatchRefuelModal({
     "addresses-only" | "addresses-amounts"
   >("addresses-amounts");
   const [commonAmount, setCommonAmount] = useState("0.005");
-  const [uploadOptions, setUploadOptions] = useState<CSVUploadOptions>({
-    hasHeader: true,
-    delimiter: ",",
-    addressColumn: 0,
-    amountColumn: 1,
-    chainColumn: 2,
-  });
+
+  // CSV parsing options
+  const delimiter = ",";
+  const addressColumn = 0;
+  const amountColumn = 1;
 
   useEffect(() => {
     if (isOpen) {
@@ -68,7 +63,6 @@ export function CSVBatchRefuelModal({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setCsvFile(file);
     setError(null);
 
     try {
@@ -112,13 +106,11 @@ export function CSVBatchRefuelModal({
         let invalidCount = 0;
 
         lines.forEach((line) => {
-          const parts = line
-            .split(uploadOptions.delimiter)
-            .map((part) => part.trim());
+          const parts = line.split(delimiter).map((part) => part.trim());
 
           if (parts.length >= 2) {
-            const address = parts[uploadOptions.addressColumn] || "";
-            const amount = parts[uploadOptions.amountColumn] || "";
+            const address = parts[addressColumn] || "";
+            const amount = parts[amountColumn] || "";
 
             const isValidAddress = validateAddress(address);
             const isValidAmount = validateAmount(amount);
@@ -421,7 +413,8 @@ export function CSVBatchRefuelModal({
                                 {recipient.amount} ETH
                               </td>
                               <td className="p-2 text-zinc-400">
-                                {SUPPORTED_CHAINS[targetChain]?.name || targetChain}
+                                {SUPPORTED_CHAINS[targetChain]?.name ||
+                                  targetChain}
                               </td>
                             </tr>
                           ))}
