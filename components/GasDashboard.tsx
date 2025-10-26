@@ -280,6 +280,33 @@ export function GasDashboard() {
     await handleRefuel(quickSourceChain, quickTargetChain, quickAmount);
   };
 
+  // ✅ Validate if transfer is possible
+  const validateTransfer = (
+    sourceChain: ChainKey,
+    targetChain: ChainKey,
+    amount: string
+  ): string | null => {
+    if (sourceChain === targetChain) {
+      return "Source and target chains cannot be the same";
+    }
+
+    if (!amount || parseFloat(amount) <= 0) {
+      return "Please enter a valid amount";
+    }
+
+    const sourceChainData = CHAIN_MAP[sourceChain];
+
+    // Check if user has sufficient balance
+    const sourceBalance = balances[sourceChain];
+    const requiredAmount = BigInt(Math.floor(parseFloat(amount) * 1e18));
+
+    if (sourceBalance < requiredAmount) {
+      return `Insufficient ${sourceChainData.symbol} balance on ${sourceChainData.name}`;
+    }
+
+    return null; // No validation errors
+  };
+
   // ✅ Refuel handler (now uses Nexus)
   const handleRefuel = async (
     sourceChain: ChainKey,
@@ -302,6 +329,16 @@ export function GasDashboard() {
           duration: 4000,
         }
       );
+      return;
+    }
+
+    // Validate transfer before attempting
+    const validationError = validateTransfer(sourceChain, targetChain, amount);
+    if (validationError) {
+      toast.error(validationError, {
+        icon: "⚠️",
+        duration: 4000,
+      });
       return;
     }
 
@@ -340,9 +377,13 @@ export function GasDashboard() {
       const sourceChainData = CHAIN_MAP[sourceChain];
       const targetChainData = CHAIN_MAP[targetChain];
 
+      // For cross-chain transfers, we need to use ETH as the universal token
+      // The SDK will handle the conversion from source chain token to ETH
+      const transferToken = "ETH"; // Always use ETH for cross-chain transfers
+
       // Trigger Nexus transfer
       const result = await bridgeTokens({
-        token: sourceChainData.symbol, // Use the correct token symbol for each chain
+        token: transferToken, // Use ETH for all cross-chain transfers
         amount,
         fromChainId: sourceChainData.id,
         toChainId: targetChainData.id,
@@ -423,7 +464,7 @@ export function GasDashboard() {
       if (errorMsg.includes("Token not supported")) {
         const sourceChainData = CHAIN_MAP[sourceChain];
         const targetChainData = CHAIN_MAP[targetChain];
-        errorMsg = `${sourceChainData.symbol} is not supported on ${targetChainData.name}. Please try bridging from a different chain.`;
+        errorMsg = `Cross-chain transfer failed. ${sourceChainData.symbol} from ${sourceChainData.name} cannot be transferred to ${targetChainData.name}. Try using ETH for cross-chain transfers.`;
       }
 
       toast.error(errorMsg, {
@@ -456,6 +497,16 @@ export function GasDashboard() {
           duration: 4000,
         }
       );
+      return;
+    }
+
+    // Validate transfer before attempting
+    const validationError = validateTransfer(sourceChain, targetChain, amount);
+    if (validationError) {
+      toast.error(validationError, {
+        icon: "⚠️",
+        duration: 4000,
+      });
       return;
     }
 
@@ -495,9 +546,12 @@ export function GasDashboard() {
       const sourceChainData = CHAIN_MAP[sourceChain];
       const targetChainData = CHAIN_MAP[targetChain];
 
+      // For cross-chain transfers, we need to use ETH as the universal token
+      const transferToken = "ETH"; // Always use ETH for cross-chain transfers
+
       // Trigger Bridge & Execute
       const result = await bridgeAndExecute({
-        token: sourceChainData.symbol, // Use the correct token symbol for each chain
+        token: transferToken, // Use ETH for all cross-chain transfers
         amount,
         fromChainId: sourceChainData.id,
         toChainId: targetChainData.id,
