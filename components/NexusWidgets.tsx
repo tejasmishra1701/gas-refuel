@@ -58,9 +58,13 @@ function NexusWidgetsContent({
         if (
           error?.message?.includes("fee grant") ||
           error?.message?.includes("Network Error") ||
-          error?.message?.includes("XAR_CA_SDK")
+          error?.message?.includes("XAR_CA_SDK") ||
+          error?.message?.includes("Failed to fetch") ||
+          error?.message?.includes("timeout") ||
+          error?.message?.includes("TimeoutError") ||
+          error?.message?.includes("Initialization timeout")
         ) {
-          console.warn("⚠️ Nexus Widgets fee grant failed, continuing...");
+          console.warn("⚠️ Nexus Widgets initialization failed, continuing...", error?.message);
         } else {
           console.error("❌ Nexus Widgets initialization failed:", error);
           throw error;

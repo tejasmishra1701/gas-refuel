@@ -306,7 +306,7 @@ export function MultipleRefuelModal({
               >
                 {CHAIN_ARRAY.map((chain) => (
                   <option key={chain.key} value={chain.key}>
-                    {chain.icon} {chain.name} (
+                    {chain.name} (
                     {formatBalance(balances[chain.key] || BigInt(0))} ETH)
                   </option>
                 ))}
@@ -330,7 +330,7 @@ export function MultipleRefuelModal({
                     (chain) => chain.key !== selectedSource
                   ).map((chain) => (
                     <option key={chain.key} value={chain.key}>
-                      {chain.icon} {chain.name} (
+                      {chain.name} (
                       {formatBalance(balances[chain.key] || BigInt(0))} ETH)
                     </option>
                   ))}

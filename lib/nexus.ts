@@ -2,6 +2,7 @@ import { NexusSDK } from "@avail-project/nexus-core";
 import type { WalletClient } from "viem";
 import type { UserAsset } from "@avail-project/nexus-core";
 import { CHAIN_MAP, ChainKey } from "./chains";
+import { isNetworkError, withNetworkErrorHandling } from "./networkUtils";
 
 // Helper function to generate explorer URL for a transaction hash
 const getExplorerUrl = (chainId: number, txHash: string): string => {
@@ -26,10 +27,12 @@ class NexusService {
   constructor(network: "mainnet" | "testnet" = "testnet") {
     this.sdk = new NexusSDK({
       network: network as any,
-      // Add configuration to prevent fee grant requests
+      // Add configuration to prevent fee grant requests and handle timeouts
       config: {
         skipFeeGrant: true,
         debug: false,
+        timeout: 10000, // 10 second timeout
+        retries: 2, // Retry failed requests twice
       },
     });
   }
@@ -63,20 +66,28 @@ class NexusService {
       console.log("🔄 Initializing Nexus SDK with provider...");
 
       try {
-        await this.sdk.initialize(provider);
+        // Add timeout wrapper for initialization
+        const initPromise = this.sdk.initialize(provider);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Initialization timeout")), 15000)
+        );
+        
+        await Promise.race([initPromise, timeoutPromise]);
         this.initialized = true;
         console.log("✅ Nexus SDK initialized successfully");
       } catch (initError: any) {
-        // Handle specific network errors
+        // Handle specific network errors including timeout errors
         if (
           initError?.message?.includes("fee grant") ||
           initError?.message?.includes("Network Error") ||
           initError?.message?.includes("XAR_CA_SDK") ||
           initError?.message?.includes("Error initializing CA") ||
-          initError?.message?.includes("CA initialization")
+          initError?.message?.includes("CA initialization") ||
+          isNetworkError(initError)
         ) {
           console.warn(
-            "⚠️ Nexus SDK initialization failed, continuing with mock mode..."
+            "⚠️ Nexus SDK initialization failed, continuing with mock mode...",
+            initError?.message
           );
           // Still mark as initialized for basic functionality
           this.initialized = true;
@@ -104,7 +115,20 @@ class NexusService {
 
   async getBalances(): Promise<UserAsset[]> {
     if (!this.initialized) throw new Error("SDK not initialized");
-    return this.sdk.getUnifiedBalances();
+    
+    try {
+      return await this.sdk.getUnifiedBalances();
+    } catch (error) {
+      console.error("Error getting unified balances:", error);
+      
+      // If it's a network error, return empty array instead of throwing
+      if (isNetworkError(error)) {
+        console.warn("Network error getting balances, returning empty array");
+        return [];
+      }
+      
+      throw error;
+    }
   }
 
   async getBalance(token: string): Promise<UserAsset | undefined> {

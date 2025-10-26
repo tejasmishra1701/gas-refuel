@@ -139,9 +139,13 @@ export function GasDashboard() {
             if (
               err?.message?.includes("fee grant") ||
               err?.message?.includes("Network Error") ||
-              err?.message?.includes("XAR_CA_SDK")
+              err?.message?.includes("XAR_CA_SDK") ||
+              err?.message?.includes("Failed to fetch") ||
+              err?.message?.includes("timeout") ||
+              err?.message?.includes("TimeoutError") ||
+              err?.message?.includes("Initialization timeout")
             ) {
-              console.warn("⚠️ Continuing without full Nexus functionality...");
+              console.warn("⚠️ Continuing without full Nexus functionality...", err?.message);
               setNexusReady(true);
             } else {
               setNexusReady(false);

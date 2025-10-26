@@ -240,7 +240,14 @@ export function MultiChainRefuelModal({
                           }
                           className="w-5 h-5 text-green-600 bg-zinc-800 border-zinc-600 rounded focus:ring-green-500 focus:ring-2"
                         />
-                        <span className="text-2xl">{chain.icon}</span>
+                        <img 
+                          src={chain.icon} 
+                          alt={chain.iconAlt} 
+                          className="w-8 h-8"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
                         <div>
                           <div className="text-white font-semibold">
                             {chain.name}
@@ -319,7 +326,11 @@ export function MultiChainRefuelModal({
               <button
                 onClick={handleMultiRefuel}
                 disabled={getEnabledCount() === 0 || isProcessing}
-                className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`px-6 py-3 rounded-xl transition-all font-semibold ${
+                  getEnabledCount() === 0
+                    ? "bg-zinc-600/50 text-zinc-400 cursor-not-allowed border border-zinc-500/30"
+                    : "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white hover:scale-105 shadow-lg"
+                } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {isProcessing
                   ? "Processing..."
