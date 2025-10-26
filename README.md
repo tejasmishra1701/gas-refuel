@@ -29,6 +29,10 @@ Managing gas across multiple blockchains is a nightmare for users. You need ETH 
 | Base Sepolia     | `84532`    | ETH    | ✅ Active |
 | Arbitrum Sepolia | `421614`   | ETH    | ✅ Active |
 | Optimism Sepolia | `11155420` | ETH    | ✅ Active |
+| Polygon Amoy     | `80002`    | MATIC  | ✅ Active |
+| Scroll Sepolia   | `534351`   | ETH    | ✅ Active |
+| Linea Sepolia    | `59141`    | ETH    | ✅ Active |
+| Mantle Sepolia   | `5003`     | MNT    | ✅ Active |
 
 ## 🛠️ Avail Nexus SDK Integration
 
@@ -116,12 +120,16 @@ npm run dev
 
 ### Environment Setup
 
-1. **Get Testnet ETH**:
+1. **Get Testnet Tokens**:
 
    - [Ethereum Sepolia Faucet](https://sepoliafaucet.com/)
    - [Base Sepolia Faucet](https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet)
    - [Arbitrum Sepolia Faucet](https://faucet.quicknode.com/arbitrum/sepolia)
    - [Optimism Sepolia Faucet](https://faucet.quicknode.com/optimism/sepolia)
+   - [Polygon Amoy Faucet](https://faucet.polygon.technology/)
+   - [Scroll Sepolia Faucet](https://sepolia.scroll.io/faucet)
+   - [Linea Sepolia Faucet](https://faucet.linea.build/)
+   - [Mantle Sepolia Faucet](https://faucet.sepolia.mantle.xyz/)
 
 2. **Add Networks to MetaMask**:
    - The app will automatically prompt to add supported networks

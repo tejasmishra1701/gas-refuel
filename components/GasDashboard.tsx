@@ -336,12 +336,16 @@ export function GasDashboard() {
         icon: "🔄",
       });
 
+      // Get chain data for token symbols
+      const sourceChainData = CHAIN_MAP[sourceChain];
+      const targetChainData = CHAIN_MAP[targetChain];
+
       // Trigger Nexus transfer
       const result = await bridgeTokens({
-        token: "ETH",
+        token: sourceChainData.symbol, // Use the correct token symbol for each chain
         amount,
-        fromChainId: fromChain.id,
-        toChainId: toChain.id,
+        fromChainId: sourceChainData.id,
+        toChainId: targetChainData.id,
       });
 
       console.log("✅ Refuel Result:", result);
@@ -416,6 +420,11 @@ export function GasDashboard() {
       if (errorMsg.includes("insufficient")) errorMsg = "Insufficient balance";
       if (errorMsg.includes("denied") || errorMsg.includes("rejected"))
         errorMsg = "Transaction rejected";
+      if (errorMsg.includes("Token not supported")) {
+        const sourceChainData = CHAIN_MAP[sourceChain];
+        const targetChainData = CHAIN_MAP[targetChain];
+        errorMsg = `${sourceChainData.symbol} is not supported on ${targetChainData.name}. Please try bridging from a different chain.`;
+      }
 
       toast.error(errorMsg, {
         icon: "❌",
@@ -482,12 +491,16 @@ export function GasDashboard() {
         icon: "🔄",
       });
 
+      // Get chain data for token symbols
+      const sourceChainData = CHAIN_MAP[sourceChain];
+      const targetChainData = CHAIN_MAP[targetChain];
+
       // Trigger Bridge & Execute
       const result = await bridgeAndExecute({
-        token: "ETH",
+        token: sourceChainData.symbol, // Use the correct token symbol for each chain
         amount,
-        fromChainId: fromChain.id,
-        toChainId: toChain.id,
+        fromChainId: sourceChainData.id,
+        toChainId: targetChainData.id,
         executeAction,
       });
 
@@ -571,6 +584,9 @@ export function GasDashboard() {
       if (errorMsg.includes("insufficient")) errorMsg = "Insufficient balance";
       if (errorMsg.includes("denied") || errorMsg.includes("rejected"))
         errorMsg = "Transaction rejected";
+      if (errorMsg.includes("Token not supported")) {
+        errorMsg = `${sourceChain} token is not supported on ${targetChain}. Please try bridging from a different chain.`;
+      }
 
       toast.error(errorMsg, {
         icon: "❌",

@@ -122,7 +122,7 @@ function NexusWidgetsContent({
             prefill={{
               fromChainId: 11155111, // Ethereum Sepolia
               toChainId: 84532, // Base Sepolia
-              token: "ETH",
+              token: "ETH", // Both chains use ETH
               amount: "0.05",
             }}
             title="Bridge ETH with Nexus Widget"

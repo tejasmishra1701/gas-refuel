@@ -15,42 +15,8 @@ export function useTransactionHistory() {
       if (stored) {
         const parsed = JSON.parse(stored);
         setTransactions(parsed);
-      } else {
-        // Add some sample transactions for demo purposes
-        const sampleTransactions: Transaction[] = [
-          {
-            id: "demo_1",
-            fromChain: "sepolia" as ChainKey,
-            toChain: "baseSepolia" as ChainKey,
-            amount: "0.05",
-            status: "completed",
-            timestamp: Date.now() - 3600000, // 1 hour ago
-            hash: "0x1234567890abcdef1234567890abcdef12345678",
-            explorerUrl:
-              "https://sepolia.etherscan.io/tx/0x1234567890abcdef1234567890abcdef12345678",
-          },
-          {
-            id: "demo_2",
-            fromChain: "arbitrumSepolia" as ChainKey,
-            toChain: "optimismSepolia" as ChainKey,
-            amount: "0.02",
-            status: "completed",
-            timestamp: Date.now() - 7200000, // 2 hours ago
-            hash: "0xabcdef1234567890abcdef1234567890abcdef12",
-            explorerUrl:
-              "https://sepolia-arbiscan.io/tx/0xabcdef1234567890abcdef1234567890abcdef12",
-          },
-          {
-            id: "demo_3",
-            fromChain: "baseSepolia" as ChainKey,
-            toChain: "sepolia" as ChainKey,
-            amount: "0.1",
-            status: "pending",
-            timestamp: Date.now() - 300000, // 5 minutes ago
-          },
-        ];
-        setTransactions(sampleTransactions);
       }
+      // Start with empty transaction history - transactions will appear as users interact
     } catch (error) {
       console.error("Failed to load transaction history:", error);
     } finally {
