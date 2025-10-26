@@ -118,6 +118,7 @@ class NexusService {
     fromChainId: number;
     toChainId: number;
     sourceChains?: number[];
+    recipient?: string; // Optional custom recipient
   }) {
     if (!this.initialized) {
       throw new Error(
@@ -128,12 +129,15 @@ class NexusService {
     console.log("🌉 Starting bridge operation:", params);
 
     try {
+      // Use custom recipient if provided, otherwise use connected wallet address
+      const recipientAddress = params.recipient || await this.getSignerAddress();
+      
       // Use transfer() for cross-chain token movement
       const result = await this.sdk.transfer({
         token: params.token as any,
         amount: params.amount,
         chainId: params.toChainId as any,
-        recipient: await this.getSignerAddress(),
+        recipient: recipientAddress,
         sourceChains: params.sourceChains ?? [params.fromChainId],
       });
 
@@ -376,6 +380,19 @@ export const bridgeTokens = async (params: {
   toChainId: number;
 }) => {
   return nexusService.bridge(params);
+};
+
+export const bridgeToRecipient = async (params: {
+  token: string;
+  amount: string | number;
+  fromChainId: number;
+  toChainId: number;
+  recipient: string;
+}) => {
+  return nexusService.bridge({
+    ...params,
+    recipient: params.recipient,
+  });
 };
 
 export const bridgeAndExecute = async (params: {

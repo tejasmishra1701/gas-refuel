@@ -11,6 +11,7 @@ import { useAccount, useWalletClient, useBalance } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChainBalance } from "./ChainBalance";
 import { RefuelModal } from "./RefuelModal";
+import { MultipleRefuelModal } from "./MultipleRefuelModal";
 import { TransactionHistory } from "./TransactionHistory";
 import { BridgeExecuteModal } from "./BridgeExecuteModal";
 import { NexusWidgets } from "./NexusWidgets";
@@ -19,6 +20,7 @@ import { formatBalance } from "@/lib/utils";
 import {
   initializeNexusSDK,
   bridgeTokens,
+  bridgeToRecipient,
   bridgeAndExecute,
 } from "@/lib/nexus";
 import { useTransactionHistory } from "@/lib/useTransactionHistory";
@@ -40,6 +42,8 @@ export function GasDashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMultipleRefuelModalOpen, setIsMultipleRefuelModalOpen] =
+    useState(false);
   const [isBridgeExecuteModalOpen, setIsBridgeExecuteModalOpen] =
     useState(false);
   const [targetChain, setTargetChain] = useState<ChainKey | undefined>();
@@ -215,31 +219,105 @@ export function GasDashboard() {
     return formatBalance(total);
   }, [address, isConnected, balances]);
 
-  // ✅ Function to manually refresh balances
-  const refreshBalances = useCallback(async () => {
-    if (!address || !isConnected) return;
+  // ✅ Function to manually refresh balances with retry logic
+  const refreshBalances = useCallback(
+    async (retryCount = 0) => {
+      if (!address || !isConnected) return;
 
-    console.log("🔄 Manually refreshing balances...");
+      console.log(
+        `🔄 Manually refreshing balances... (attempt ${retryCount + 1})`
+      );
 
-    // Trigger refetch for all balance hooks
-    try {
-      await Promise.all([
-        sepoliaBalance.refetch(),
-        baseSepoliaBalance.refetch(),
-        arbitrumSepoliaBalance.refetch(),
-        optimismSepoliaBalance.refetch(),
-        polygonAmoyBalance.refetch(),
-        scrollSepoliaBalance.refetch(),
-        lineaSepoliaBalance.refetch(),
-        mantleSepoliaBalance.refetch(),
-      ]);
-      console.log("✅ Balances refreshed successfully");
-    } catch (error) {
-      console.error("❌ Error refreshing balances:", error);
-    }
+      // Trigger refetch for all balance hooks with individual error handling
+      try {
+        const results = await Promise.allSettled([
+          sepoliaBalance.refetch(),
+          baseSepoliaBalance.refetch(),
+          arbitrumSepoliaBalance.refetch(),
+          optimismSepoliaBalance.refetch(),
+          polygonAmoyBalance.refetch(),
+          scrollSepoliaBalance.refetch(),
+          lineaSepoliaBalance.refetch(),
+          mantleSepoliaBalance.refetch(),
+        ]);
+
+        // Check for failed requests
+        const failedRequests = results.filter(
+          (result) => result.status === "rejected"
+        );
+        if (failedRequests.length > 0 && retryCount < 2) {
+          console.warn(
+            `⚠️ ${failedRequests.length} balance requests failed, retrying...`
+          );
+          setTimeout(() => refreshBalances(retryCount + 1), 2000);
+          return;
+        }
+
+        console.log("✅ Balances refreshed successfully");
+      } catch (error) {
+        console.error("❌ Error refreshing balances:", error);
+        if (retryCount < 2) {
+          console.log("🔄 Retrying balance refresh...");
+          setTimeout(() => refreshBalances(retryCount + 1), 2000);
+        }
+      }
+    },
+    [
+      address,
+      isConnected,
+      sepoliaBalance,
+      baseSepoliaBalance,
+      arbitrumSepoliaBalance,
+      optimismSepoliaBalance,
+      polygonAmoyBalance,
+      scrollSepoliaBalance,
+      lineaSepoliaBalance,
+      mantleSepoliaBalance,
+    ]
+  );
+
+  // ✅ Debug function to log current balance state
+  const logBalanceState = useCallback(() => {
+    console.log("📊 Current Balance State:", {
+      address,
+      isConnected,
+      balances: Object.fromEntries(
+        Object.entries(balances).map(([key, value]) => [
+          key,
+          formatBalance(value),
+        ])
+      ),
+      wagmiData: {
+        sepolia: sepoliaBalance.data?.value
+          ? formatBalance(sepoliaBalance.data.value)
+          : "loading",
+        baseSepolia: baseSepoliaBalance.data?.value
+          ? formatBalance(baseSepoliaBalance.data.value)
+          : "loading",
+        arbitrumSepolia: arbitrumSepoliaBalance.data?.value
+          ? formatBalance(arbitrumSepoliaBalance.data.value)
+          : "loading",
+        optimismSepolia: optimismSepoliaBalance.data?.value
+          ? formatBalance(optimismSepoliaBalance.data.value)
+          : "loading",
+        polygonAmoy: polygonAmoyBalance.data?.value
+          ? formatBalance(polygonAmoyBalance.data.value)
+          : "loading",
+        scrollSepolia: scrollSepoliaBalance.data?.value
+          ? formatBalance(scrollSepoliaBalance.data.value)
+          : "loading",
+        lineaSepolia: lineaSepoliaBalance.data?.value
+          ? formatBalance(lineaSepoliaBalance.data.value)
+          : "loading",
+        mantleSepolia: mantleSepoliaBalance.data?.value
+          ? formatBalance(mantleSepoliaBalance.data.value)
+          : "loading",
+      },
+    });
   }, [
     address,
     isConnected,
+    balances,
     sepoliaBalance,
     baseSepoliaBalance,
     arbitrumSepoliaBalance,
@@ -249,6 +327,44 @@ export function GasDashboard() {
     lineaSepoliaBalance,
     mantleSepoliaBalance,
   ]);
+
+  // ✅ Enhanced function to force balance refresh after transactions
+  const forceBalanceRefresh = useCallback(async () => {
+    if (!address || !isConnected) return;
+
+    console.log("🔄 Force refreshing balances after transaction...");
+    logBalanceState(); // Log state before refresh
+
+    // Multiple refresh attempts with different strategies
+    const refreshStrategies = [
+      // Immediate refresh
+      () => refreshBalances(),
+      // Refresh with small delay
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => refreshBalances().then(resolve), 1000)
+        ),
+      // Refresh with medium delay
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => refreshBalances().then(resolve), 3000)
+        ),
+      // Refresh with longer delay
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => refreshBalances().then(resolve), 5000)
+        ),
+    ];
+
+    try {
+      // Execute all refresh strategies
+      await Promise.allSettled(refreshStrategies.map((strategy) => strategy()));
+      console.log("✅ Force balance refresh completed");
+      logBalanceState(); // Log state after refresh
+    } catch (error) {
+      console.error("❌ Error in force balance refresh:", error);
+    }
+  }, [address, isConnected, refreshBalances, logBalanceState]);
 
   // ✅ Periodic balance refresh for real-time updates
   useEffect(() => {
@@ -341,6 +457,11 @@ export function GasDashboard() {
   const handleRefuelClick = (chain?: ChainKey) => {
     setTargetChain(chain);
     setIsModalOpen(true);
+  };
+
+  // ✅ Open multiple refuel modal
+  const handleMultipleRefuelClick = () => {
+    setIsMultipleRefuelModalOpen(true);
   };
 
   // ✅ Open Bridge & Execute modal
@@ -582,18 +703,19 @@ export function GasDashboard() {
           }
         );
 
-        // Refresh balances multiple times to ensure they update
-        setTimeout(() => {
-          refreshBalances();
-        }, 1000); // First refresh after 1 second
+        // Force refresh balances after successful refuel
+        // Cross-chain transactions can take time to propagate
+        console.log("🎉 Refuel successful, forcing balance refresh...");
 
-        setTimeout(() => {
-          refreshBalances();
-        }, 3000); // Second refresh after 3 seconds
+        // Show user notification about balance refresh
+        toast.loading("Refreshing balances...", {
+          id: "balance-refresh",
+          duration: 10000,
+        });
 
-        setTimeout(() => {
-          refreshBalances();
-        }, 5000); // Third refresh after 5 seconds
+        forceBalanceRefresh().finally(() => {
+          toast.dismiss("balance-refresh");
+        });
       } else {
         // Check if this is a user rejection
         const errorMessage = (result as any).error || "Transfer failed";
@@ -645,6 +767,459 @@ export function GasDashboard() {
         errorMsg = "Request timed out. Please try again.";
       } else if (errorMsg.includes("CORS") || errorMsg.includes("cors")) {
         errorMsg = "Network access denied. Please try again.";
+      }
+
+      toast.error(errorMsg, {
+        icon: "❌",
+        duration: 6000,
+      });
+    }
+  };
+
+  // ✅ Multiple refuel handler
+  const handleMultipleRefuel = async (
+    sourceChain: ChainKey,
+    targets: Array<{ chain: ChainKey; amount: string; enabled: boolean }>
+  ) => {
+    if (!walletClient || !address) {
+      toast.error("Wallet not connected", {
+        icon: "⚠️",
+        duration: 4000,
+      });
+      return;
+    }
+
+    if (!nexusReady) {
+      toast.error(
+        "Nexus SDK is still initializing. Please wait and try again.",
+        {
+          icon: "⏳",
+          duration: 4000,
+        }
+      );
+      return;
+    }
+
+    const enabledTargets = targets.filter((target) => target.enabled);
+    if (enabledTargets.length === 0) {
+      toast.error("Please select at least one target chain", {
+        icon: "⚠️",
+        duration: 4000,
+      });
+      return;
+    }
+
+    try {
+      console.log("🚀 Starting multiple chain refuel:", {
+        from: sourceChain,
+        targets: enabledTargets,
+      });
+
+      const fromChain = CHAIN_MAP[sourceChain];
+      if (!fromChain) {
+        toast.error("Invalid source chain selection.", {
+          icon: "⚠️",
+          duration: 4000,
+        });
+        return;
+      }
+
+      // Show loading toast with progress
+      const loadingToast = toast.loading(
+        `Processing ${enabledTargets.length} refuel transactions...`,
+        {
+          icon: "🔄",
+        }
+      );
+
+      // Execute all transfers in parallel
+      const transferPromises = enabledTargets.map(async (target) => {
+        const toChain = CHAIN_MAP[target.chain];
+        if (!toChain) {
+          throw new Error(`Invalid target chain: ${target.chain}`);
+        }
+
+        // Add transaction to history (pending)
+        const transaction = addTransaction({
+          fromChain: sourceChain,
+          toChain: target.chain,
+          amount: target.amount,
+          status: "pending",
+        });
+
+        try {
+          // Execute the transfer
+          const result = await bridgeTokens({
+            token: "ETH", // Always use ETH for cross-chain transfers
+            amount: target.amount,
+            fromChainId: fromChain.id,
+            toChainId: toChain.id,
+          });
+
+          if (result.success) {
+            // Update transaction status
+            updateTransaction(transaction.id, {
+              status: "completed",
+              hash: (result as any).txHash || (result as any).transactionHash,
+              explorerUrl: result.explorerUrl,
+            });
+
+            return {
+              success: true,
+              target: target.chain,
+              amount: target.amount,
+              result,
+            };
+          } else {
+            // Update transaction status to failed
+            updateTransaction(transaction.id, {
+              status: "failed",
+            });
+
+            throw new Error((result as any).error || "Transfer failed");
+          }
+        } catch (error) {
+          // Update transaction status to failed
+          updateTransaction(transaction.id, {
+            status: "failed",
+          });
+
+          throw error;
+        }
+      });
+
+      // Wait for all transfers to complete
+      const results = await Promise.allSettled(transferPromises);
+
+      toast.dismiss(loadingToast);
+
+      // Count successful and failed transfers
+      const successful = results.filter((r) => r.status === "fulfilled").length;
+      const failed = results.filter((r) => r.status === "rejected").length;
+
+      if (successful > 0) {
+        toast.success(
+          (t) => (
+            <div className="flex flex-col gap-2">
+              <div className="font-bold text-lg">
+                🎉 Multiple Refuel Complete!
+              </div>
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">From:</span>
+                  <span className="font-semibold">{fromChain.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Successful:</span>
+                  <span className="font-semibold text-green-400">
+                    {successful} transfer{successful !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                {failed > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Failed:</span>
+                    <span className="font-semibold text-red-400">
+                      {failed} transfer{failed !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ),
+          {
+            duration: 8000,
+            style: {
+              maxWidth: "500px",
+            },
+          }
+        );
+      }
+
+      if (failed > 0) {
+        toast.error(
+          `${failed} transfer${
+            failed !== 1 ? "s" : ""
+          } failed. Check transaction history for details.`,
+          {
+            icon: "❌",
+            duration: 6000,
+          }
+        );
+      }
+
+      // Force refresh balances after all transfers
+      console.log("🎉 Multiple refuel complete, forcing balance refresh...");
+      toast.loading("Refreshing balances...", {
+        id: "balance-refresh",
+        duration: 10000,
+      });
+
+      forceBalanceRefresh().finally(() => {
+        toast.dismiss("balance-refresh");
+      });
+    } catch (error: unknown) {
+      console.error("❌ Multiple refuel failed:", error);
+
+      let errorMsg = "Unknown error";
+      if (error instanceof Error) {
+        errorMsg = error.message;
+      }
+
+      toast.error(errorMsg, {
+        icon: "❌",
+        duration: 6000,
+      });
+    }
+  };
+
+  // ✅ CSV Batch Refuel handler
+  const handleCSVBatchRefuel = async (
+    sourceChain: ChainKey,
+    targetChain: ChainKey,
+    recipients: Array<{ address: string; amount: string }>
+  ) => {
+    if (!walletClient || !address) {
+      toast.error("Wallet not connected", {
+        icon: "⚠️",
+        duration: 4000,
+      });
+      return;
+    }
+
+    if (!nexusReady) {
+      toast.error(
+        "Nexus SDK is still initializing. Please wait and try again.",
+        {
+          icon: "⏳",
+          duration: 4000,
+        }
+      );
+      return;
+    }
+
+    if (recipients.length === 0) {
+      toast.error("No recipients provided", {
+        icon: "⚠️",
+        duration: 4000,
+      });
+      return;
+    }
+
+    try {
+      console.log("🚀 Starting CSV batch refuel:", {
+        from: sourceChain,
+        to: targetChain,
+        recipients: recipients.length,
+      });
+
+      const fromChain = CHAIN_MAP[sourceChain];
+      const toChain = CHAIN_MAP[targetChain];
+
+      if (!fromChain || !toChain) {
+        toast.error("Invalid chain selection.", {
+          icon: "⚠️",
+          duration: 4000,
+        });
+        return;
+      }
+
+      // Calculate total amount needed
+      const totalAmount = recipients.reduce(
+        (sum, r) => sum + parseFloat(r.amount),
+        0
+      );
+
+      // Check if source has enough balance
+      const sourceBalance = balances[sourceChain];
+      const requiredAmount = BigInt(Math.floor(totalAmount * 1e18));
+
+      if (sourceBalance < requiredAmount) {
+        toast.error(
+          `Insufficient balance. You need ${totalAmount.toFixed(4)} ETH but only have ${formatBalance(sourceBalance)} ETH`,
+          {
+            icon: "⚠️",
+            duration: 6000,
+          }
+        );
+        return;
+      }
+
+      // Show initial loading toast
+      const loadingToast = toast.loading(
+        `Starting batch refuel of ${recipients.length} wallets...`,
+        {
+          icon: "🔄",
+        }
+      );
+
+      const BATCH_SIZE = 5;
+      const totalBatches = Math.ceil(recipients.length / BATCH_SIZE);
+      let completedTransfers = 0;
+      let successfulTransfers = 0;
+      let failedTransfers = 0;
+
+      // Process in batches
+      for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+        const startIndex = batchIndex * BATCH_SIZE;
+        const endIndex = Math.min(startIndex + BATCH_SIZE, recipients.length);
+        const batch = recipients.slice(startIndex, endIndex);
+
+        // Update progress toast
+        toast.loading(
+          `Processing batch ${batchIndex + 1} of ${totalBatches} (${completedTransfers}/${recipients.length} completed)...`,
+          {
+            id: loadingToast,
+            icon: "🔄",
+          }
+        );
+
+        // Execute batch transfers
+        const batchPromises = batch.map(async (recipient) => {
+          // Add transaction to history (pending)
+          const transaction = addTransaction({
+            fromChain: sourceChain,
+            toChain: targetChain,
+            amount: recipient.amount,
+            status: "pending",
+          });
+
+          try {
+            // Execute the transfer to specific recipient
+            const result = await bridgeToRecipient({
+              token: "ETH",
+              amount: recipient.amount,
+              fromChainId: fromChain.id,
+              toChainId: toChain.id,
+              recipient: recipient.address,
+            });
+
+            if (result.success) {
+              // Update transaction status
+              updateTransaction(transaction.id, {
+                status: "completed",
+                hash: (result as any).txHash || (result as any).transactionHash,
+                explorerUrl: result.explorerUrl,
+              });
+
+              return {
+                success: true,
+                recipient: recipient.address,
+                amount: recipient.amount,
+                result,
+              };
+            } else {
+              // Update transaction status to failed
+              updateTransaction(transaction.id, {
+                status: "failed",
+              });
+
+              throw new Error((result as any).error || "Transfer failed");
+            }
+          } catch (error) {
+            // Update transaction status to failed
+            updateTransaction(transaction.id, {
+              status: "failed",
+            });
+
+            throw error;
+          }
+        });
+
+        // Wait for batch to complete
+        const batchResults = await Promise.allSettled(batchPromises);
+
+        // Count results
+        batchResults.forEach((result) => {
+          completedTransfers++;
+          if (result.status === "fulfilled") {
+            successfulTransfers++;
+          } else {
+            failedTransfers++;
+          }
+        });
+
+        // Small delay between batches to avoid overwhelming the network
+        if (batchIndex < totalBatches - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+
+      // Show final results
+      if (successfulTransfers > 0) {
+        toast.success(
+          (t) => (
+            <div className="flex flex-col gap-2">
+              <div className="font-bold text-lg">
+                🎉 CSV Batch Refuel Complete!
+              </div>
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">From:</span>
+                  <span className="font-semibold">{fromChain.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">To:</span>
+                  <span className="font-semibold">{toChain.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Total Amount:</span>
+                  <span className="font-semibold">{totalAmount.toFixed(4)} ETH</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Successful:</span>
+                  <span className="font-semibold text-green-400">
+                    {successfulTransfers} transfer{successfulTransfers !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                {failedTransfers > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Failed:</span>
+                    <span className="font-semibold text-red-400">
+                      {failedTransfers} transfer{failedTransfers !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ),
+          {
+            duration: 10000,
+            style: {
+              maxWidth: "500px",
+            },
+          }
+        );
+      }
+
+      if (failedTransfers > 0) {
+        toast.error(
+          `${failedTransfers} transfer${failedTransfers !== 1 ? "s" : ""} failed. Check transaction history for details.`,
+          {
+            icon: "❌",
+            duration: 6000,
+          }
+        );
+      }
+
+      // Force refresh balances after all transfers
+      console.log("🎉 CSV batch refuel complete, forcing balance refresh...");
+      toast.loading("Refreshing balances...", {
+        id: "balance-refresh",
+        duration: 10000,
+      });
+
+      forceBalanceRefresh().finally(() => {
+        toast.dismiss("balance-refresh");
+      });
+    } catch (error: unknown) {
+      console.error("❌ CSV batch refuel failed:", error);
+
+      let errorMsg = "Unknown error";
+      if (error instanceof Error) {
+        errorMsg = error.message;
       }
 
       toast.error(errorMsg, {
@@ -836,18 +1411,19 @@ export function GasDashboard() {
           }
         );
 
-        // Refresh balances multiple times to ensure they update
-        setTimeout(() => {
-          refreshBalances();
-        }, 1000); // First refresh after 1 second
+        // Force refresh balances after successful refuel
+        // Cross-chain transactions can take time to propagate
+        console.log("🎉 Refuel successful, forcing balance refresh...");
 
-        setTimeout(() => {
-          refreshBalances();
-        }, 3000); // Second refresh after 3 seconds
+        // Show user notification about balance refresh
+        toast.loading("Refreshing balances...", {
+          id: "balance-refresh",
+          duration: 10000,
+        });
 
-        setTimeout(() => {
-          refreshBalances();
-        }, 5000); // Third refresh after 5 seconds
+        forceBalanceRefresh().finally(() => {
+          toast.dismiss("balance-refresh");
+        });
       } else {
         // Update transaction status to failed
         updateTransaction(transaction.id, {
@@ -1049,7 +1625,7 @@ export function GasDashboard() {
                     </span>
                   )}
                   <button
-                    onClick={refreshBalances}
+                    onClick={forceBalanceRefresh}
                     className="text-sm text-blue-300 bg-blue-500/20 px-3 py-1 rounded-full hover:bg-blue-500/30 transition-colors flex items-center gap-2"
                     disabled={isLoading}
                   >
@@ -1060,7 +1636,7 @@ export function GasDashboard() {
               </div>
               <div className="flex gap-3">
                 <button
-                  onClick={() => handleRefuelClick()}
+                  onClick={handleMultipleRefuelClick}
                   disabled={!nexusReady}
                   className="bg-white/10 hover:bg-white/20 text-white px-6 py-4 rounded-xl font-semibold transition-all backdrop-blur-sm border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 shadow-lg hover:shadow-xl"
                 >
@@ -1220,6 +1796,16 @@ export function GasDashboard() {
               targetChain={targetChain}
               balances={balances}
               onRefuel={handleRefuel}
+            />
+          )}
+
+          {isMultipleRefuelModalOpen && (
+            <MultipleRefuelModal
+              isOpen={isMultipleRefuelModalOpen}
+              onClose={() => setIsMultipleRefuelModalOpen(false)}
+              balances={balances}
+              onRefuelMultiple={handleMultipleRefuel}
+              onCSVBatchRefuel={handleCSVBatchRefuel}
             />
           )}
 
