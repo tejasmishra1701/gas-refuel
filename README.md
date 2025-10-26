@@ -38,7 +38,7 @@ We support **8 major testnets** so you can refuel wherever you're building:
 | Arbitrum Sepolia | `421614`   | ETH    | ✅ Active | Lightning fast   |
 | Optimism Sepolia | `11155420` | ETH    | ✅ Active | Super optimistic |
 | Polygon Amoy     | `80002`    | MATIC  | ✅ Active | Polygon's latest |
-| Monad Testnet   | `1014`     | MON    | ✅ Active | Monad latest |
+| Monad Testnet    | `1014`     | MON    | ✅ Active | Monad latest     |
 
 _More chains coming soon! We're always adding new ones._
 
@@ -142,7 +142,6 @@ We've collected all the best faucets for you:
 | **Arbitrum Sepolia** | [QuickNode Faucet](https://faucet.quicknode.com/arbitrum/sepolia)                | 0.1 ETH      |
 | **Optimism Sepolia** | [QuickNode Faucet](https://faucet.quicknode.com/optimism/sepolia)                | 0.1 ETH      |
 | **Polygon Amoy**     | [Polygon Faucet](https://faucet.polygon.technology/)                             | 0.1 MATIC    |
-
 
 _Pro tip: Get ETH on 2-3 different chains, then use Gas Refuel to move it around!_
 
@@ -327,9 +326,7 @@ MIT License - basically, do whatever you want with it. We're not lawyers.
 - **[Wagmi](https://wagmi.sh)** - For Web3 React hooks that just work
 - **The Web3 Community** - For being awesome and supportive
 
-## 
-
-
+##
 
 **Built with ❤️, ☕, and a lot of determination for ETHGlobal Online 2025**
 
