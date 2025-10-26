@@ -5,9 +5,11 @@ import { useAccount, useWalletClient, useBalance } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChainBalance } from "./ChainBalance";
 import { RefuelModal } from "./RefuelModal";
+import { TransactionHistory } from "./TransactionHistory";
 import { CHAIN_ARRAY, ChainKey, CHAIN_MAP } from "@/lib/chains";
 import { formatBalance } from "@/lib/utils";
 import { initializeNexusSDK, bridgeTokens } from "@/lib/nexus";
+import { useTransactionHistory } from "@/lib/useTransactionHistory";
 import toast, { Toaster } from "react-hot-toast";
 
 export function GasDashboard() {
@@ -30,6 +32,14 @@ export function GasDashboard() {
     useState<ChainKey>("baseSepolia");
   const [quickAmount, setQuickAmount] = useState("0.05");
   const [mounted, setMounted] = useState(false);
+
+  // Transaction history
+  const {
+    transactions,
+    isLoading: isHistoryLoading,
+    addTransaction,
+    updateTransaction,
+  } = useTransactionHistory();
 
   // Fix hydration by ensuring client-side rendering
   useEffect(() => {
@@ -222,6 +232,14 @@ export function GasDashboard() {
         return;
       }
 
+      // Add transaction to history (pending)
+      const transaction = addTransaction({
+        fromChain,
+        toChain,
+        amount,
+        status: "pending",
+      });
+
       // Show loading toast
       const loadingToast = toast.loading("Processing refuel transaction...", {
         icon: "🔄",
@@ -238,6 +256,13 @@ export function GasDashboard() {
       console.log("✅ Refuel Result:", result);
 
       if (result.success) {
+        // Update transaction status
+        updateTransaction(transaction.id, {
+          status: "completed",
+          hash: result.txHash,
+          explorerUrl: result.explorerUrl,
+        });
+
         toast.dismiss(loadingToast);
 
         toast.success(
@@ -279,8 +304,14 @@ export function GasDashboard() {
           }
         );
 
-        setTimeout(() => window.location.reload(), 5000);
+        // Refresh balances after a short delay
+        setTimeout(() => window.location.reload(), 3000);
       } else {
+        // Update transaction status to failed
+        updateTransaction(transaction.id, {
+          status: "failed",
+        });
+
         toast.dismiss(loadingToast);
         throw new Error(result.error || "Transfer failed");
       }
@@ -459,27 +490,35 @@ export function GasDashboard() {
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             {/* Chain Balances */}
-            <div className="xl:col-span-2">
-              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                <span className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></span>
-                Your Chains
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {CHAIN_ARRAY.map((chain, index) => (
-                  <div
-                    key={chain.key}
-                    className="animate-slide-up"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <ChainBalance
-                      chainKey={chain.key}
-                      balance={balances[chain.key]}
-                      isLoading={isLoading}
-                      onRefuel={() => handleRefuelClick(chain.key)}
-                    />
-                  </div>
-                ))}
+            <div className="xl:col-span-2 space-y-8">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                  <span className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></span>
+                  Your Chains
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {CHAIN_ARRAY.map((chain, index) => (
+                    <div
+                      key={chain.key}
+                      className="animate-slide-up"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <ChainBalance
+                        chainKey={chain.key}
+                        balance={balances[chain.key]}
+                        isLoading={isLoading}
+                        onRefuel={() => handleRefuelClick(chain.key)}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              {/* Transaction History */}
+              <TransactionHistory 
+                transactions={transactions} 
+                isLoading={isHistoryLoading} 
+              />
             </div>
 
             {/* Quick Refuel Section */}
