@@ -9,6 +9,7 @@ import {
   downloadSampleCSV,
   formatAddress,
   validateAddress,
+  validateAmount,
   type ParsedCSV,
   type CSVRecipient,
   type CSVUploadOptions,
@@ -37,7 +38,9 @@ export function CSVBatchRefuelModal({
   const [error, setError] = useState<string | null>(null);
   const [sourceChain, setSourceChain] = useState<ChainKey>("sepolia");
   const [targetChain, setTargetChain] = useState<ChainKey>("baseSepolia");
-  const [csvFormat, setCsvFormat] = useState<"addresses-only" | "addresses-amounts">("addresses-amounts");
+  const [csvFormat, setCsvFormat] = useState<
+    "addresses-only" | "addresses-amounts"
+  >("addresses-amounts");
   const [commonAmount, setCommonAmount] = useState("0.005");
   const [uploadOptions, setUploadOptions] = useState<CSVUploadOptions>({
     hasHeader: true,
@@ -70,31 +73,81 @@ export function CSVBatchRefuelModal({
 
     try {
       const text = await file.text();
-      
+
       // Parse CSV based on format selection
       if (csvFormat === "addresses-only") {
         // Parse addresses only and use common amount
-        const lines = text.split('\n').filter(line => line.trim());
-        const recipients: CSVRecipient[] = lines.map(line => {
+        const lines = text.split("\n").filter((line) => line.trim());
+        const recipients: CSVRecipient[] = lines.map((line) => {
           const address = line.trim();
           return {
             address,
             amount: commonAmount,
             isValid: validateAddress(address),
-            error: validateAddress(address) ? undefined : "Invalid address format"
+            error: validateAddress(address)
+              ? undefined
+              : "Invalid address format",
           };
+        });
+
+        const parsed: ParsedCSV = {
+          recipients,
+          totalAmount: recipients.reduce(
+            (sum, r) => sum + parseFloat(r.amount),
+            0
+          ),
+          validCount: recipients.filter((r) => r.isValid).length,
+          invalidCount: recipients.filter((r) => !r.isValid).length,
+        };
+        setParsedData(parsed);
+      } else {
+        // Parse addresses and amounts using the existing parser
+        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        const recipients: CSVRecipient[] = [];
+        let totalAmount = 0;
+        let validCount = 0;
+        let invalidCount = 0;
+        
+        lines.forEach((line) => {
+          const parts = line.split(uploadOptions.delimiter).map(part => part.trim());
+          
+          if (parts.length >= 2) {
+            const address = parts[uploadOptions.addressColumn] || '';
+            const amount = parts[uploadOptions.amountColumn] || '';
+            
+            const isValidAddress = validateAddress(address);
+            const isValidAmount = validateAmount(amount);
+            
+            recipients.push({
+              address,
+              amount,
+              isValid: isValidAddress && isValidAmount,
+              error: !isValidAddress ? "Invalid address" : !isValidAmount ? "Invalid amount" : undefined
+            });
+            
+            if (isValidAddress && isValidAmount) {
+              totalAmount += parseFloat(amount);
+              validCount++;
+            } else {
+              invalidCount++;
+            }
+          } else {
+            recipients.push({
+              address: parts[0] || '',
+              amount: '',
+              isValid: false,
+              error: "Insufficient columns"
+            });
+            invalidCount++;
+          }
         });
         
         const parsed: ParsedCSV = {
           recipients,
-          totalAmount: recipients.reduce((sum, r) => sum + parseFloat(r.amount), 0),
-          validCount: recipients.filter(r => r.isValid).length,
-          invalidCount: recipients.filter(r => !r.isValid).length
+          totalAmount,
+          validCount,
+          invalidCount
         };
-        setParsedData(parsed);
-      } else {
-        // Parse addresses and amounts
-        const parsed = parseCSV(text, uploadOptions);
         setParsedData(parsed);
       }
     } catch (err) {
@@ -214,12 +267,18 @@ export function CSVBatchRefuelModal({
                         name="csvFormat"
                         value="addresses-amounts"
                         checked={csvFormat === "addresses-amounts"}
-                        onChange={(e) => setCsvFormat(e.target.value as "addresses-amounts")}
+                        onChange={(e) =>
+                          setCsvFormat(e.target.value as "addresses-amounts")
+                        }
                         className="w-4 h-4 text-purple-600 bg-zinc-800 border-zinc-600 focus:ring-purple-500 focus:ring-2"
                       />
                       <div>
-                        <div className="text-white font-semibold">Addresses + Amounts</div>
-                        <div className="text-zinc-400 text-sm">CSV contains both addresses and amounts</div>
+                        <div className="text-white font-semibold">
+                          Addresses + Amounts
+                        </div>
+                        <div className="text-zinc-400 text-sm">
+                          CSV contains both addresses and amounts
+                        </div>
                       </div>
                     </label>
                   </div>
@@ -230,17 +289,23 @@ export function CSVBatchRefuelModal({
                         name="csvFormat"
                         value="addresses-only"
                         checked={csvFormat === "addresses-only"}
-                        onChange={(e) => setCsvFormat(e.target.value as "addresses-only")}
+                        onChange={(e) =>
+                          setCsvFormat(e.target.value as "addresses-only")
+                        }
                         className="w-4 h-4 text-purple-600 bg-zinc-800 border-zinc-600 focus:ring-purple-500 focus:ring-2"
                       />
                       <div>
-                        <div className="text-white font-semibold">Addresses Only</div>
-                        <div className="text-zinc-400 text-sm">CSV contains only addresses, use common amount</div>
+                        <div className="text-white font-semibold">
+                          Addresses Only
+                        </div>
+                        <div className="text-zinc-400 text-sm">
+                          CSV contains only addresses, use common amount
+                        </div>
                       </div>
                     </label>
                   </div>
                 </div>
-                
+
                 {csvFormat === "addresses-only" && (
                   <div>
                     <label className="block text-sm font-semibold text-zinc-300 mb-2">
@@ -297,82 +362,82 @@ export function CSVBatchRefuelModal({
                   CSV Format Options
                 </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-zinc-300 mb-2">
-                    Address Column
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={uploadOptions.addressColumn}
-                    onChange={(e) =>
-                      setUploadOptions({
-                        ...uploadOptions,
-                        addressColumn: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                  />
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                      Address Column
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={uploadOptions.addressColumn}
+                      onChange={(e) =>
+                        setUploadOptions({
+                          ...uploadOptions,
+                          addressColumn: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-zinc-300 mb-2">
-                    Amount Column
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={uploadOptions.amountColumn}
-                    onChange={(e) =>
-                      setUploadOptions({
-                        ...uploadOptions,
-                        amountColumn: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                      Amount Column
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={uploadOptions.amountColumn}
+                      onChange={(e) =>
+                        setUploadOptions({
+                          ...uploadOptions,
+                          amountColumn: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-zinc-300 mb-2">
-                    Chain Column
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={uploadOptions.chainColumn}
-                    onChange={(e) =>
-                      setUploadOptions({
-                        ...uploadOptions,
-                        chainColumn: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                      Chain Column
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={uploadOptions.chainColumn}
+                      onChange={(e) =>
+                        setUploadOptions({
+                          ...uploadOptions,
+                          chainColumn: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-zinc-300 mb-2">
-                    Delimiter
-                  </label>
-                  <select
-                    value={uploadOptions.delimiter}
-                    onChange={(e) =>
-                      setUploadOptions({
-                        ...uploadOptions,
-                        delimiter: e.target.value,
-                      })
-                    }
-                    className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                  >
-                    <option value=",">Comma (,)</option>
-                    <option value=";">Semicolon (;)</option>
-                    <option value="\t">Tab</option>
-                  </select>
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                      Delimiter
+                    </label>
+                    <select
+                      value={uploadOptions.delimiter}
+                      onChange={(e) =>
+                        setUploadOptions({
+                          ...uploadOptions,
+                          delimiter: e.target.value,
+                        })
+                      }
+                      className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    >
+                      <option value=",">Comma (,)</option>
+                      <option value=";">Semicolon (;)</option>
+                      <option value="\t">Tab</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-            </div>
             )}
 
             {/* Preview Section */}

@@ -20,7 +20,7 @@ interface MultiChainRefuelModalProps {
   isOpen: boolean;
   onClose: () => void;
   balances: Record<ChainKey, bigint>;
-  onRefuelMultiple: (targets: RefuelTarget[]) => Promise<void>;
+  onRefuelMultiple: (sourceChain: ChainKey, targets: RefuelTarget[]) => Promise<void>;
 }
 
 export function MultiChainRefuelModal({
@@ -33,6 +33,7 @@ export function MultiChainRefuelModal({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [customAmount, setCustomAmount] = useState("0.05");
+  const [sourceChain, setSourceChain] = useState<ChainKey>("sepolia");
 
   useEffect(() => {
     if (isOpen) {
@@ -102,7 +103,7 @@ export function MultiChainRefuelModal({
     setError(null);
 
     try {
-      await onRefuelMultiple(enabledTargets);
+      await onRefuelMultiple(sourceChain, enabledTargets);
       onClose();
     } catch (err) {
       setError(
@@ -144,6 +145,29 @@ export function MultiChainRefuelModal({
           </div>
 
           <div className="space-y-6">
+            {/* Source Chain Selection */}
+            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Source Chain
+              </h3>
+              <div>
+                <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                  Select source chain to refuel from
+                </label>
+                <select
+                  value={sourceChain}
+                  onChange={(e) => setSourceChain(e.target.value as ChainKey)}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                >
+                  {CHAIN_ARRAY.map((chain) => (
+                    <option key={chain.key} value={chain.key}>
+                      {chain.name} ({formatBalance(balances[chain.key])} ETH)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             {/* Preset Selection */}
             <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-white mb-4">
@@ -163,7 +187,7 @@ export function MultiChainRefuelModal({
                   </button>
                 ))}
               </div>
-              
+
               {/* Custom Amount Input */}
               <div className="mt-4 pt-4 border-t border-zinc-700/50">
                 <label className="block text-sm font-semibold text-zinc-300 mb-2">
@@ -180,7 +204,9 @@ export function MultiChainRefuelModal({
                     placeholder="0.05"
                   />
                   <button
-                    onClick={() => handlePresetSelect({ label: "Custom", eth: customAmount })}
+                    onClick={() =>
+                      handlePresetSelect({ label: "Custom", eth: customAmount })
+                    }
                     className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-4 py-3 rounded-xl transition-all font-semibold"
                   >
                     Apply Custom
@@ -196,7 +222,7 @@ export function MultiChainRefuelModal({
               </h3>
 
               <div className="space-y-4">
-                {refuelTargets.map((target) => {
+                {refuelTargets.filter(target => target.chain !== sourceChain).map((target) => {
                   const chain = SUPPORTED_CHAINS[target.chain];
                   const currentBalance = formatBalance(balances[target.chain]);
 

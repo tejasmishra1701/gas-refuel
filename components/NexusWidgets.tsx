@@ -304,12 +304,12 @@ function NexusWidgetsContent({
                     onChange={(e) => setBridgeFromChain(Number(e.target.value))}
                     className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 cursor-pointer"
                   >
-                      <option value={11155111}>Ethereum Sepolia</option>
-                      <option value={84532}>Base Sepolia</option>
-                      <option value={421614}>Arbitrum Sepolia</option>
-                      <option value={11155420}>Optimism Sepolia</option>
-                      <option value={80002}>Polygon Amoy</option>
-                      <option value={999999999}>Monad Sepolia</option>
+                    <option value={11155111}>Ethereum Sepolia</option>
+                    <option value={84532}>Base Sepolia</option>
+                    <option value={421614}>Arbitrum Sepolia</option>
+                    <option value={11155420}>Optimism Sepolia</option>
+                    <option value={80002}>Polygon Amoy</option>
+                    <option value={999999999}>Monad Sepolia</option>
                   </select>
                 </div>
                 <div>
@@ -321,12 +321,12 @@ function NexusWidgetsContent({
                     onChange={(e) => setBridgeToChain(Number(e.target.value))}
                     className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 cursor-pointer"
                   >
-                      <option value={11155111}>Ethereum Sepolia</option>
-                      <option value={84532}>Base Sepolia</option>
-                      <option value={421614}>Arbitrum Sepolia</option>
-                      <option value={11155420}>Optimism Sepolia</option>
-                      <option value={80002}>Polygon Amoy</option>
-                      <option value={999999999}>Monad Sepolia</option>
+                    <option value={11155111}>Ethereum Sepolia</option>
+                    <option value={84532}>Base Sepolia</option>
+                    <option value={421614}>Arbitrum Sepolia</option>
+                    <option value={11155420}>Optimism Sepolia</option>
+                    <option value={80002}>Polygon Amoy</option>
+                    <option value={999999999}>Monad Sepolia</option>
                   </select>
                 </div>
               </div>
@@ -427,12 +427,12 @@ function NexusWidgetsContent({
                     }
                     className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all hover:bg-zinc-800 cursor-pointer"
                   >
-                      <option value={11155111}>Ethereum Sepolia</option>
-                      <option value={84532}>Base Sepolia</option>
-                      <option value={421614}>Arbitrum Sepolia</option>
-                      <option value={11155420}>Optimism Sepolia</option>
-                      <option value={80002}>Polygon Amoy</option>
-                      <option value={999999999}>Monad Sepolia</option>
+                    <option value={11155111}>Ethereum Sepolia</option>
+                    <option value={84532}>Base Sepolia</option>
+                    <option value={421614}>Arbitrum Sepolia</option>
+                    <option value={11155420}>Optimism Sepolia</option>
+                    <option value={80002}>Polygon Amoy</option>
+                    <option value={999999999}>Monad Sepolia</option>
                   </select>
                 </div>
                 <div>
@@ -444,12 +444,12 @@ function NexusWidgetsContent({
                     onChange={(e) => setTransferToChain(Number(e.target.value))}
                     className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all hover:bg-zinc-800 cursor-pointer"
                   >
-                      <option value={11155111}>Ethereum Sepolia</option>
-                      <option value={84532}>Base Sepolia</option>
-                      <option value={421614}>Arbitrum Sepolia</option>
-                      <option value={11155420}>Optimism Sepolia</option>
-                      <option value={80002}>Polygon Amoy</option>
-                      <option value={999999999}>Monad Sepolia</option>
+                    <option value={11155111}>Ethereum Sepolia</option>
+                    <option value={84532}>Base Sepolia</option>
+                    <option value={421614}>Arbitrum Sepolia</option>
+                    <option value={11155420}>Optimism Sepolia</option>
+                    <option value={80002}>Polygon Amoy</option>
+                    <option value={999999999}>Monad Sepolia</option>
                   </select>
                 </div>
               </div>
@@ -548,12 +548,12 @@ function NexusWidgetsContent({
                     onChange={(e) => setSwapFromChain(Number(e.target.value))}
                     className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all hover:bg-zinc-800 cursor-pointer"
                   >
-                      <option value={11155111}>Ethereum Sepolia</option>
-                      <option value={84532}>Base Sepolia</option>
-                      <option value={421614}>Arbitrum Sepolia</option>
-                      <option value={11155420}>Optimism Sepolia</option>
-                      <option value={80002}>Polygon Amoy</option>
-                      <option value={999999999}>Monad Sepolia</option>
+                    <option value={11155111}>Ethereum Sepolia</option>
+                    <option value={84532}>Base Sepolia</option>
+                    <option value={421614}>Arbitrum Sepolia</option>
+                    <option value={11155420}>Optimism Sepolia</option>
+                    <option value={80002}>Polygon Amoy</option>
+                    <option value={999999999}>Monad Sepolia</option>
                   </select>
                 </div>
                 <div>
@@ -565,12 +565,12 @@ function NexusWidgetsContent({
                     onChange={(e) => setSwapToChain(Number(e.target.value))}
                     className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all hover:bg-zinc-800 cursor-pointer"
                   >
-                      <option value={11155111}>Ethereum Sepolia</option>
-                      <option value={84532}>Base Sepolia</option>
-                      <option value={421614}>Arbitrum Sepolia</option>
-                      <option value={11155420}>Optimism Sepolia</option>
-                      <option value={80002}>Polygon Amoy</option>
-                      <option value={999999999}>Monad Sepolia</option>
+                    <option value={11155111}>Ethereum Sepolia</option>
+                    <option value={84532}>Base Sepolia</option>
+                    <option value={421614}>Arbitrum Sepolia</option>
+                    <option value={11155420}>Optimism Sepolia</option>
+                    <option value={80002}>Polygon Amoy</option>
+                    <option value={999999999}>Monad Sepolia</option>
                   </select>
                 </div>
               </div>
@@ -717,12 +717,12 @@ function NexusWidgetsContent({
                     }
                     className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all hover:bg-zinc-800 cursor-pointer"
                   >
-                      <option value={11155111}>Ethereum Sepolia</option>
-                      <option value={84532}>Base Sepolia</option>
-                      <option value={421614}>Arbitrum Sepolia</option>
-                      <option value={11155420}>Optimism Sepolia</option>
-                      <option value={80002}>Polygon Amoy</option>
-                      <option value={999999999}>Monad Sepolia</option>
+                    <option value={11155111}>Ethereum Sepolia</option>
+                    <option value={84532}>Base Sepolia</option>
+                    <option value={421614}>Arbitrum Sepolia</option>
+                    <option value={11155420}>Optimism Sepolia</option>
+                    <option value={80002}>Polygon Amoy</option>
+                    <option value={999999999}>Monad Sepolia</option>
                   </select>
                 </div>
                 <div>
@@ -736,12 +736,12 @@ function NexusWidgetsContent({
                     }
                     className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all hover:bg-zinc-800 cursor-pointer"
                   >
-                      <option value={11155111}>Ethereum Sepolia</option>
-                      <option value={84532}>Base Sepolia</option>
-                      <option value={421614}>Arbitrum Sepolia</option>
-                      <option value={11155420}>Optimism Sepolia</option>
-                      <option value={80002}>Polygon Amoy</option>
-                      <option value={999999999}>Monad Sepolia</option>
+                    <option value={11155111}>Ethereum Sepolia</option>
+                    <option value={84532}>Base Sepolia</option>
+                    <option value={421614}>Arbitrum Sepolia</option>
+                    <option value={11155420}>Optimism Sepolia</option>
+                    <option value={80002}>Polygon Amoy</option>
+                    <option value={999999999}>Monad Sepolia</option>
                   </select>
                 </div>
               </div>
