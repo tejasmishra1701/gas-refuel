@@ -1035,7 +1035,9 @@ export function GasDashboard() {
 
       if (sourceBalance < requiredAmount) {
         toast.error(
-          `Insufficient balance. You need ${totalAmount.toFixed(4)} ETH but only have ${formatBalance(sourceBalance)} ETH`,
+          `Insufficient balance. You need ${totalAmount.toFixed(
+            4
+          )} ETH but only have ${formatBalance(sourceBalance)} ETH`,
           {
             icon: "⚠️",
             duration: 6000,
@@ -1066,7 +1068,11 @@ export function GasDashboard() {
 
         // Update progress toast
         toast.loading(
-          `Processing batch ${batchIndex + 1} of ${totalBatches} (${completedTransfers}/${recipients.length} completed)...`,
+          `Processing batch ${
+            batchIndex + 1
+          } of ${totalBatches} (${completedTransfers}/${
+            recipients.length
+          } completed)...`,
           {
             id: loadingToast,
             icon: "🔄",
@@ -1166,19 +1172,23 @@ export function GasDashboard() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-400">Total Amount:</span>
-                  <span className="font-semibold">{totalAmount.toFixed(4)} ETH</span>
+                  <span className="font-semibold">
+                    {totalAmount.toFixed(4)} ETH
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-400">Successful:</span>
                   <span className="font-semibold text-green-400">
-                    {successfulTransfers} transfer{successfulTransfers !== 1 ? "s" : ""}
+                    {successfulTransfers} transfer
+                    {successfulTransfers !== 1 ? "s" : ""}
                   </span>
                 </div>
                 {failedTransfers > 0 && (
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Failed:</span>
                     <span className="font-semibold text-red-400">
-                      {failedTransfers} transfer{failedTransfers !== 1 ? "s" : ""}
+                      {failedTransfers} transfer
+                      {failedTransfers !== 1 ? "s" : ""}
                     </span>
                   </div>
                 )}
@@ -1196,7 +1206,9 @@ export function GasDashboard() {
 
       if (failedTransfers > 0) {
         toast.error(
-          `${failedTransfers} transfer${failedTransfers !== 1 ? "s" : ""} failed. Check transaction history for details.`,
+          `${failedTransfers} transfer${
+            failedTransfers !== 1 ? "s" : ""
+          } failed. Check transaction history for details.`,
           {
             icon: "❌",
             duration: 6000,
@@ -1653,7 +1665,7 @@ export function GasDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* Chain Balances */}
             <div className="lg:col-span-3 space-y-6">
               <div>
@@ -1679,29 +1691,11 @@ export function GasDashboard() {
                 </div>
               </div>
 
-              {/* Transaction History and Nexus Widgets - Side by Side */}
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <TransactionHistory
-                  transactions={transactions}
-                  isLoading={isHistoryLoading}
-                />
-
-                <NexusWidgets
-                  balances={balances}
-                  onTransactionComplete={() => {
-                    // Refresh balances when widget transactions complete
-                    setTimeout(() => {
-                      refreshBalances();
-                    }, 1000);
-                    setTimeout(() => {
-                      refreshBalances();
-                    }, 3000);
-                    setTimeout(() => {
-                      refreshBalances();
-                    }, 5000);
-                  }}
-                />
-              </div>
+              {/* Transaction History */}
+              <TransactionHistory
+                transactions={transactions}
+                isLoading={isHistoryLoading}
+              />
             </div>
 
             {/* Quick Refuel Section */}
@@ -1785,6 +1779,25 @@ export function GasDashboard() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Nexus Widgets Section */}
+            <div className="lg:sticky lg:top-6 lg:h-fit">
+              <NexusWidgets
+                balances={balances}
+                onTransactionComplete={() => {
+                  // Refresh balances when widget transactions complete
+                  setTimeout(() => {
+                    refreshBalances();
+                  }, 1000);
+                  setTimeout(() => {
+                    refreshBalances();
+                  }, 3000);
+                  setTimeout(() => {
+                    refreshBalances();
+                  }, 5000);
+                }}
+              />
             </div>
           </div>
 
