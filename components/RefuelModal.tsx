@@ -9,6 +9,7 @@ import {
   GAS_PRESETS,
 } from "@/lib/chains";
 import { formatBalance } from "@/lib/utils";
+import { ChainIcon } from "./ChainIcon";
 
 interface RefuelModalProps {
   isOpen: boolean;
@@ -109,6 +110,12 @@ export function RefuelModal({
               <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
                 From Chain
               </label>
+              <div className="flex items-center gap-3 mb-2">
+                <ChainIcon chainKey={selectedSource} size={24} />
+                <span className="text-sm text-zinc-400">
+                  {SUPPORTED_CHAINS[selectedSource].name}
+                </span>
+              </div>
               <select
                 value={selectedSource}
                 onChange={(e) => setSelectedSource(e.target.value as ChainKey)}
@@ -116,7 +123,7 @@ export function RefuelModal({
               >
                 {CHAIN_ARRAY.map((chain) => (
                   <option key={chain.key} value={chain.key}>
-                    {chain.icon} {chain.name} (
+                    {chain.name} (
                     {formatBalance(balances[chain.key] || BigInt(0))} ETH)
                   </option>
                 ))}
@@ -134,6 +141,12 @@ export function RefuelModal({
               <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
                 To Chain
               </label>
+              <div className="flex items-center gap-3 mb-2">
+                <ChainIcon chainKey={selectedTarget} size={24} />
+                <span className="text-sm text-zinc-400">
+                  {SUPPORTED_CHAINS[selectedTarget].name}
+                </span>
+              </div>
               <select
                 value={selectedTarget}
                 onChange={(e) => setSelectedTarget(e.target.value as ChainKey)}
@@ -143,7 +156,7 @@ export function RefuelModal({
                   (chain) => chain.key !== selectedSource
                 ).map((chain) => (
                   <option key={chain.key} value={chain.key}>
-                    {chain.icon} {chain.name} (
+                    {chain.name} (
                     {formatBalance(balances[chain.key] || BigInt(0))} ETH)
                   </option>
                 ))}

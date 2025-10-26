@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { SUPPORTED_CHAINS, CHAIN_ARRAY, ChainKey } from "@/lib/chains";
 import { formatBalance } from "@/lib/utils";
+import { ChainIcon } from "./ChainIcon";
 import {
   downloadSampleCSV,
   formatAddress,
@@ -220,6 +221,12 @@ export function CSVBatchRefuelModal({
                   <label className="block text-sm font-semibold text-zinc-300 mb-2">
                     Source Chain
                   </label>
+                  <div className="flex items-center gap-3 mb-2">
+                    <ChainIcon chainKey={sourceChain} size={20} />
+                    <span className="text-sm text-zinc-400">
+                      {SUPPORTED_CHAINS[sourceChain].name}
+                    </span>
+                  </div>
                   <select
                     value={sourceChain}
                     onChange={(e) => setSourceChain(e.target.value as ChainKey)}
@@ -236,6 +243,12 @@ export function CSVBatchRefuelModal({
                   <label className="block text-sm font-semibold text-zinc-300 mb-2">
                     Target Chain
                   </label>
+                  <div className="flex items-center gap-3 mb-2">
+                    <ChainIcon chainKey={targetChain} size={20} />
+                    <span className="text-sm text-zinc-400">
+                      {SUPPORTED_CHAINS[targetChain].name}
+                    </span>
+                  </div>
                   <select
                     value={targetChain}
                     onChange={(e) => setTargetChain(e.target.value as ChainKey)}

@@ -2,12 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import {
-  SUPPORTED_CHAINS,
-  CHAIN_ARRAY,
-  ChainKey,
-} from "@/lib/chains";
+import { SUPPORTED_CHAINS, CHAIN_ARRAY, ChainKey } from "@/lib/chains";
 import { formatBalance } from "@/lib/utils";
+import { ChainIcon } from "./ChainIcon";
 import { bridgeTokens } from "@/lib/nexus";
 import toast from "react-hot-toast";
 
@@ -98,7 +95,9 @@ export function BridgeExecuteModal({
     }
   };
 
-  const selectedAction = EXECUTE_ACTIONS.find(action => action.id === executeAction);
+  const selectedAction = EXECUTE_ACTIONS.find(
+    (action) => action.id === executeAction
+  );
 
   // Handle SSR
   if (!mounted || !isOpen) return null;
@@ -144,14 +143,22 @@ export function BridgeExecuteModal({
                 <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
                   From Chain
                 </label>
+                <div className="flex items-center gap-3 mb-2">
+                  <ChainIcon chainKey={selectedSource} size={24} />
+                  <span className="text-sm text-zinc-400">
+                    {SUPPORTED_CHAINS[selectedSource].name}
+                  </span>
+                </div>
                 <select
                   value={selectedSource}
-                  onChange={(e) => setSelectedSource(e.target.value as ChainKey)}
+                  onChange={(e) =>
+                    setSelectedSource(e.target.value as ChainKey)
+                  }
                   className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 cursor-pointer"
                 >
                   {CHAIN_ARRAY.map((chain) => (
                     <option key={chain.key} value={chain.key}>
-                      {chain.icon} {chain.name} (
+                      {chain.name} (
                       {formatBalance(balances[chain.key] || BigInt(0))} ETH)
                     </option>
                   ))}
@@ -169,16 +176,24 @@ export function BridgeExecuteModal({
                 <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
                   To Chain
                 </label>
+                <div className="flex items-center gap-3 mb-2">
+                  <ChainIcon chainKey={selectedTarget} size={24} />
+                  <span className="text-sm text-zinc-400">
+                    {SUPPORTED_CHAINS[selectedTarget].name}
+                  </span>
+                </div>
                 <select
                   value={selectedTarget}
-                  onChange={(e) => setSelectedTarget(e.target.value as ChainKey)}
+                  onChange={(e) =>
+                    setSelectedTarget(e.target.value as ChainKey)
+                  }
                   className="w-full bg-zinc-800/70 border border-zinc-700/70 p-4 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 cursor-pointer"
                 >
                   {CHAIN_ARRAY.filter(
                     (chain) => chain.key !== selectedSource
                   ).map((chain) => (
                     <option key={chain.key} value={chain.key}>
-                      {chain.icon} {chain.name} (
+                      {chain.name} (
                       {formatBalance(balances[chain.key] || BigInt(0))} ETH)
                     </option>
                   ))}
@@ -223,8 +238,12 @@ export function BridgeExecuteModal({
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{action.icon}</span>
                       <div>
-                        <div className="font-semibold text-sm">{action.name}</div>
-                        <div className="text-xs opacity-80">{action.description}</div>
+                        <div className="font-semibold text-sm">
+                          {action.name}
+                        </div>
+                        <div className="text-xs opacity-80">
+                          {action.description}
+                        </div>
                       </div>
                     </div>
                   </button>
@@ -234,9 +253,14 @@ export function BridgeExecuteModal({
               {/* Action Preview */}
               {selectedAction && (
                 <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl p-4">
-                  <h4 className="text-sm font-semibold text-zinc-300 mb-2">Action Preview</h4>
+                  <h4 className="text-sm font-semibold text-zinc-300 mb-2">
+                    Action Preview
+                  </h4>
                   <div className="text-sm text-zinc-400 space-y-1">
-                    <div>1. Bridge {amount} ETH from {SUPPORTED_CHAINS[selectedSource].name}</div>
+                    <div>
+                      1. Bridge {amount} ETH from{" "}
+                      {SUPPORTED_CHAINS[selectedSource].name}
+                    </div>
                     <div>2. Execute: {selectedAction.name}</div>
                     <div>3. Result: {selectedAction.description}</div>
                   </div>

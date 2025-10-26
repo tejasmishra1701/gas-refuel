@@ -2,6 +2,7 @@
 
 import { formatBalance, formatUSD } from "@/lib/utils";
 import { SUPPORTED_CHAINS, ChainKey } from "@/lib/chains";
+import { ChainIcon } from "./ChainIcon";
 
 interface ChainBalanceProps {
   chainKey: ChainKey;
@@ -32,8 +33,8 @@ export function ChainBalance({
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-zinc-800/50 flex items-center justify-center text-3xl border border-zinc-700/50 group-hover:scale-110 transition-transform">
-              {chain.icon}
+            <div className="w-12 h-12 rounded-xl bg-zinc-800/50 flex items-center justify-center border border-zinc-700/50 group-hover:scale-110 transition-transform">
+              <ChainIcon chainKey={chainKey} size={48} />
             </div>
             <div>
               <h3 className="font-bold text-white text-base">{chain.name}</h3>

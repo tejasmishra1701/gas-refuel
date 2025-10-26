@@ -16,6 +16,7 @@ import { CSVBatchRefuelModal } from "./CSVBatchRefuelModal";
 import { TransactionHistory } from "./TransactionHistory";
 import { BridgeExecuteModal } from "./BridgeExecuteModal";
 import { NexusWidgets } from "./NexusWidgets";
+import { ChainIcon } from "./ChainIcon";
 import { CHAIN_ARRAY, ChainKey, CHAIN_MAP } from "@/lib/chains";
 import { formatBalance } from "@/lib/utils";
 import {
@@ -1666,6 +1667,12 @@ export function GasDashboard() {
                     <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
                       From
                     </label>
+                    <div className="flex items-center gap-3 mb-2">
+                      <ChainIcon chainKey={quickSourceChain} size={20} />
+                      <span className="text-sm text-zinc-400">
+                        {CHAIN_MAP[quickSourceChain].name}
+                      </span>
+                    </div>
                     <select
                       value={quickSourceChain}
                       onChange={(e) =>
@@ -1694,6 +1701,12 @@ export function GasDashboard() {
                     <label className="block text-sm font-semibold text-zinc-300 mb-3 uppercase tracking-wide">
                       To
                     </label>
+                    <div className="flex items-center gap-3 mb-2">
+                      <ChainIcon chainKey={quickTargetChain} size={20} />
+                      <span className="text-sm text-zinc-400">
+                        {CHAIN_MAP[quickTargetChain].name}
+                      </span>
+                    </div>
                     <select
                       value={quickTargetChain}
                       onChange={(e) =>

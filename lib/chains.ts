@@ -6,7 +6,8 @@ export const SUPPORTED_CHAINS = {
     symbol: "ETH",
     explorer: "https://sepolia.etherscan.io",
     color: "#627EEA",
-    icon: "⟠",
+    icon: "/chains/ethereum.svg",
+    iconAlt: "Ethereum logo",
   },
   baseSepolia: {
     id: 84532,
@@ -15,7 +16,8 @@ export const SUPPORTED_CHAINS = {
     symbol: "ETH",
     explorer: "https://sepolia.basescan.org",
     color: "#0052FF",
-    icon: "🔵",
+    icon: "/chains/base.svg",
+    iconAlt: "Base logo",
   },
   arbitrumSepolia: {
     id: 421614,
@@ -24,7 +26,8 @@ export const SUPPORTED_CHAINS = {
     symbol: "ETH",
     explorer: "https://sepolia.arbiscan.io",
     color: "#28A0F0",
-    icon: "🔷",
+    icon: "/chains/arbitrum.svg",
+    iconAlt: "Arbitrum logo",
   },
   optimismSepolia: {
     id: 11155420,
@@ -33,7 +36,8 @@ export const SUPPORTED_CHAINS = {
     symbol: "ETH",
     explorer: "https://sepolia-optimism.etherscan.io",
     color: "#FF0420",
-    icon: "🔴",
+    icon: "/chains/optimism.svg",
+    iconAlt: "Optimism logo",
   },
   polygonAmoy: {
     id: 80002,
@@ -42,7 +46,8 @@ export const SUPPORTED_CHAINS = {
     symbol: "MATIC",
     explorer: "https://amoy.polygonscan.com",
     color: "#8247E5",
-    icon: "🟣",
+    icon: "/chains/polygon.svg",
+    iconAlt: "Polygon logo",
   },
   monadSepolia: {
     id: 999999999,
@@ -51,7 +56,8 @@ export const SUPPORTED_CHAINS = {
     symbol: "MON",
     explorer: "https://sepolia.monadscan.xyz",
     color: "#00D4AA",
-    icon: "🔶",
+    icon: "/chains/monad.svg",
+    iconAlt: "Monad logo",
   },
 } as const;
 

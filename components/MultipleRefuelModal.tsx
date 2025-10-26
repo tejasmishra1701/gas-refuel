@@ -9,6 +9,7 @@ import {
   GAS_PRESETS,
 } from "@/lib/chains";
 import { formatBalance } from "@/lib/utils";
+import { ChainIcon } from "./ChainIcon";
 import {
   parseCSV,
   downloadSampleCSV,
@@ -394,7 +395,7 @@ export function MultipleRefuelModal({
                             </button>
 
                             <div className="flex-1 flex items-center gap-3">
-                              <span className="text-2xl">{chain.icon}</span>
+                              <ChainIcon chainKey={target.chain} size={32} />
                               <div>
                                 <div className="font-semibold text-white">
                                   {chain.name}
@@ -499,7 +500,7 @@ export function MultipleRefuelModal({
                         Common Amount
                       </button>
                     </div>
-                    
+
                     {useCommonAmount && (
                       <div>
                         <label className="block text-sm font-semibold text-zinc-300 mb-2 uppercase tracking-wide">
@@ -558,7 +559,9 @@ export function MultipleRefuelModal({
                           <br />
                           Example: 0x1234...
                           <br />
-                          <span className="text-blue-400">All wallets will receive {commonAmount} ETH</span>
+                          <span className="text-blue-400">
+                            All wallets will receive {commonAmount} ETH
+                          </span>
                         </>
                       ) : (
                         <>
