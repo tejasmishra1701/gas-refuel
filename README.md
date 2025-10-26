@@ -155,9 +155,7 @@ _Pro tip: Get ETH on 2-3 different chains, then use Gas Refuel to move it around
 
 _That's literally it. No complex UI, no confusing steps._
 
-## 📱 See It In Action
-
-[Watch our 2-minute demo](https://youtube.com/watch?v=demo) to see how ridiculously easy this is.
+## 
 
 **What you'll see:**
 
