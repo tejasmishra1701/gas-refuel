@@ -51,7 +51,7 @@ export const SUPPORTED_CHAINS = {
     symbol: "MON",
     explorer: "https://sepolia.monadscan.xyz",
     color: "#00D4AA",
-    icon: "🔷",
+    icon: "🔶",
   },
 } as const;
 

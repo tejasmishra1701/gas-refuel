@@ -11,7 +11,8 @@ import { useAccount, useWalletClient, useBalance } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChainBalance } from "./ChainBalance";
 import { RefuelModal } from "./RefuelModal";
-import { MultipleRefuelModal } from "./MultipleRefuelModal";
+import { MultiChainRefuelModal } from "./MultiChainRefuelModal";
+import { CSVBatchRefuelModal } from "./CSVBatchRefuelModal";
 import { TransactionHistory } from "./TransactionHistory";
 import { BridgeExecuteModal } from "./BridgeExecuteModal";
 import { NexusWidgets } from "./NexusWidgets";
@@ -40,7 +41,9 @@ export function GasDashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isMultipleRefuelModalOpen, setIsMultipleRefuelModalOpen] =
+  const [isMultiChainRefuelModalOpen, setIsMultiChainRefuelModalOpen] =
+    useState(false);
+  const [isCSVBatchRefuelModalOpen, setIsCSVBatchRefuelModalOpen] =
     useState(false);
   const [isBridgeExecuteModalOpen, setIsBridgeExecuteModalOpen] =
     useState(false);
@@ -416,7 +419,7 @@ export function GasDashboard() {
 
   // ✅ Open multiple refuel modal
   const handleMultipleRefuelClick = () => {
-    setIsMultipleRefuelModalOpen(true);
+    setIsMultiChainRefuelModalOpen(true);
   };
 
   // ✅ Open Bridge & Execute modal
@@ -425,7 +428,7 @@ export function GasDashboard() {
   };
 
   const handleCSVBatchRefuelClick = () => {
-    setIsMultipleRefuelModalOpen(true);
+    setIsCSVBatchRefuelModalOpen(true);
   };
 
   const handleQuickRefuel = async () => {
@@ -1649,7 +1652,6 @@ export function GasDashboard() {
                   ))}
                 </div>
               </div>
-
             </div>
 
             {/* Quick Refuel Section */}
@@ -1820,12 +1822,20 @@ export function GasDashboard() {
             />
           )}
 
-          {isMultipleRefuelModalOpen && (
-            <MultipleRefuelModal
-              isOpen={isMultipleRefuelModalOpen}
-              onClose={() => setIsMultipleRefuelModalOpen(false)}
+          {isMultiChainRefuelModalOpen && (
+            <MultiChainRefuelModal
+              isOpen={isMultiChainRefuelModalOpen}
+              onClose={() => setIsMultiChainRefuelModalOpen(false)}
               balances={balances}
               onRefuelMultiple={handleMultipleRefuel}
+            />
+          )}
+
+          {isCSVBatchRefuelModalOpen && (
+            <CSVBatchRefuelModal
+              isOpen={isCSVBatchRefuelModalOpen}
+              onClose={() => setIsCSVBatchRefuelModalOpen(false)}
+              balances={balances}
               onCSVBatchRefuel={handleCSVBatchRefuel}
             />
           )}
