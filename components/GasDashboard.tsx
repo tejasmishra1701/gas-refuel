@@ -6,9 +6,15 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChainBalance } from "./ChainBalance";
 import { RefuelModal } from "./RefuelModal";
 import { TransactionHistory } from "./TransactionHistory";
+import { BridgeExecuteModal } from "./BridgeExecuteModal";
+import { NexusWidgets } from "./NexusWidgets";
 import { CHAIN_ARRAY, ChainKey, CHAIN_MAP } from "@/lib/chains";
 import { formatBalance } from "@/lib/utils";
-import { initializeNexusSDK, bridgeTokens } from "@/lib/nexus";
+import {
+  initializeNexusSDK,
+  bridgeTokens,
+  bridgeAndExecute,
+} from "@/lib/nexus";
 import { useTransactionHistory } from "@/lib/useTransactionHistory";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -21,9 +27,15 @@ export function GasDashboard() {
     baseSepolia: BigInt(0),
     arbitrumSepolia: BigInt(0),
     optimismSepolia: BigInt(0),
+    polygonAmoy: BigInt(0),
+    scrollSepolia: BigInt(0),
+    lineaSepolia: BigInt(0),
+    mantleSepolia: BigInt(0),
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBridgeExecuteModalOpen, setIsBridgeExecuteModalOpen] =
+    useState(false);
   const [targetChain, setTargetChain] = useState<ChainKey | undefined>();
   const [totalBalance, setTotalBalance] = useState<string>("0.00");
   const [nexusReady, setNexusReady] = useState(false);
@@ -56,21 +68,55 @@ export function GasDashboard() {
     if (!mounted) return;
 
     if (walletClient && !nexusReady) {
+      // Set a timeout to prevent infinite "connecting" state
+      const timeout = setTimeout(() => {
+        if (mounted && !nexusReady) {
+          console.warn("⚠️ Nexus SDK initialization timeout, continuing...");
+          setNexusReady(true);
+        }
+      }, 5000); // 5 second timeout
+
       initializeNexusSDK(walletClient)
         .then(() => {
           if (mounted) {
+            clearTimeout(timeout);
             console.log("✅ Nexus SDK initialized");
             setNexusReady(true);
           }
         })
         .catch((err) => {
           if (mounted) {
+            clearTimeout(timeout);
             console.error("❌ Nexus init error:", err);
-            setNexusReady(false);
+            // Even if initialization fails, mark as ready for basic functionality
+            if (
+              err?.message?.includes("fee grant") ||
+              err?.message?.includes("Network Error") ||
+              err?.message?.includes("XAR_CA_SDK")
+            ) {
+              console.warn("⚠️ Continuing without full Nexus functionality...");
+              setNexusReady(true);
+            } else {
+              setNexusReady(false);
+            }
           }
         });
+
+      return () => clearTimeout(timeout);
     }
   }, [mounted, walletClient, nexusReady]);
+
+  // ✅ Persist wallet connection state
+  useEffect(() => {
+    if (isConnected && address) {
+      // Store connection state in localStorage
+      localStorage.setItem("wallet-connected", "true");
+      localStorage.setItem("wallet-address", address);
+    } else {
+      localStorage.removeItem("wallet-connected");
+      localStorage.removeItem("wallet-address");
+    }
+  }, [isConnected, address]);
 
   // ✅ Use wagmi hooks to fetch balances for each chain
   const sepoliaBalance = useBalance({
@@ -93,6 +139,26 @@ export function GasDashboard() {
     chainId: 11155420, // Optimism Sepolia
   });
 
+  const polygonAmoyBalance = useBalance({
+    address,
+    chainId: 80002, // Polygon Amoy
+  });
+
+  const scrollSepoliaBalance = useBalance({
+    address,
+    chainId: 534351, // Scroll Sepolia
+  });
+
+  const lineaSepoliaBalance = useBalance({
+    address,
+    chainId: 59141, // Linea Sepolia
+  });
+
+  const mantleSepoliaBalance = useBalance({
+    address,
+    chainId: 5003, // Mantle Sepolia
+  });
+
   // ✅ Update balances when wagmi data changes
   useEffect(() => {
     // Prevent state updates if component is unmounted
@@ -108,6 +174,10 @@ export function GasDashboard() {
       baseSepolia: baseSepoliaBalance.data?.value || BigInt(0),
       arbitrumSepolia: arbitrumSepoliaBalance.data?.value || BigInt(0),
       optimismSepolia: optimismSepoliaBalance.data?.value || BigInt(0),
+      polygonAmoy: polygonAmoyBalance.data?.value || BigInt(0),
+      scrollSepolia: scrollSepoliaBalance.data?.value || BigInt(0),
+      lineaSepolia: lineaSepoliaBalance.data?.value || BigInt(0),
+      mantleSepolia: mantleSepoliaBalance.data?.value || BigInt(0),
     };
 
     console.log("🔄 Updating balances from wagmi hooks:", {
@@ -115,6 +185,10 @@ export function GasDashboard() {
       baseSepolia: formatBalance(newBalances.baseSepolia),
       arbitrumSepolia: formatBalance(newBalances.arbitrumSepolia),
       optimismSepolia: formatBalance(newBalances.optimismSepolia),
+      polygonAmoy: formatBalance(newBalances.polygonAmoy),
+      scrollSepolia: formatBalance(newBalances.scrollSepolia),
+      lineaSepolia: formatBalance(newBalances.lineaSepolia),
+      mantleSepolia: formatBalance(newBalances.mantleSepolia),
     });
 
     setBalances(newBalances);
@@ -131,7 +205,11 @@ export function GasDashboard() {
       sepoliaBalance.isLoading ||
       baseSepoliaBalance.isLoading ||
       arbitrumSepoliaBalance.isLoading ||
-      optimismSepoliaBalance.isLoading;
+      optimismSepoliaBalance.isLoading ||
+      polygonAmoyBalance.isLoading ||
+      scrollSepoliaBalance.isLoading ||
+      lineaSepoliaBalance.isLoading ||
+      mantleSepoliaBalance.isLoading;
 
     setIsLoading(isLoading);
   }, [
@@ -142,16 +220,29 @@ export function GasDashboard() {
     baseSepoliaBalance.data?.value,
     arbitrumSepoliaBalance.data?.value,
     optimismSepoliaBalance.data?.value,
+    polygonAmoyBalance.data?.value,
+    scrollSepoliaBalance.data?.value,
+    lineaSepoliaBalance.data?.value,
+    mantleSepoliaBalance.data?.value,
     sepoliaBalance.isLoading,
     baseSepoliaBalance.isLoading,
     arbitrumSepoliaBalance.isLoading,
     optimismSepoliaBalance.isLoading,
+    polygonAmoyBalance.isLoading,
+    scrollSepoliaBalance.isLoading,
+    lineaSepoliaBalance.isLoading,
+    mantleSepoliaBalance.isLoading,
   ]);
 
   // ✅ Open refuel modal
   const handleRefuelClick = (chain?: ChainKey) => {
     setTargetChain(chain);
     setIsModalOpen(true);
+  };
+
+  // ✅ Open Bridge & Execute modal
+  const handleBridgeExecuteClick = () => {
+    setIsBridgeExecuteModalOpen(true);
   };
 
   const handleQuickRefuel = async () => {
@@ -234,8 +325,8 @@ export function GasDashboard() {
 
       // Add transaction to history (pending)
       const transaction = addTransaction({
-        fromChain,
-        toChain,
+        fromChain: sourceChain,
+        toChain: targetChain,
         amount,
         status: "pending",
       });
@@ -259,7 +350,7 @@ export function GasDashboard() {
         // Update transaction status
         updateTransaction(transaction.id, {
           status: "completed",
-          hash: result.txHash,
+          hash: (result as any).txHash || (result as any).transactionHash,
           explorerUrl: result.explorerUrl,
         });
 
@@ -313,10 +404,165 @@ export function GasDashboard() {
         });
 
         toast.dismiss(loadingToast);
-        throw new Error(result.error || "Transfer failed");
+        throw new Error((result as any).error || "Transfer failed");
       }
     } catch (error: unknown) {
       console.error("❌ Refuel failed:", error);
+
+      let errorMsg = "Unknown error";
+      if (error instanceof Error) {
+        errorMsg = error.message;
+      }
+      if (errorMsg.includes("insufficient")) errorMsg = "Insufficient balance";
+      if (errorMsg.includes("denied") || errorMsg.includes("rejected"))
+        errorMsg = "Transaction rejected";
+
+      toast.error(errorMsg, {
+        icon: "❌",
+        duration: 6000,
+      });
+    }
+  };
+
+  // ✅ Bridge & Execute handler
+  const handleBridgeExecute = async (
+    sourceChain: ChainKey,
+    targetChain: ChainKey,
+    amount: string,
+    executeAction: string
+  ) => {
+    if (!walletClient || !address) {
+      toast.error("Wallet not connected", {
+        icon: "⚠️",
+        duration: 4000,
+      });
+      return;
+    }
+
+    if (!nexusReady) {
+      toast.error(
+        "Nexus SDK is still initializing. Please wait and try again.",
+        {
+          icon: "⏳",
+          duration: 4000,
+        }
+      );
+      return;
+    }
+
+    try {
+      console.log("🌉⚡ Starting Bridge & Execute:", {
+        from: sourceChain,
+        to: targetChain,
+        amount,
+        action: executeAction,
+      });
+
+      const fromChain = CHAIN_MAP[sourceChain];
+      const toChain = CHAIN_MAP[targetChain];
+
+      if (!fromChain || !toChain) {
+        toast.error("Invalid chain selection.", {
+          icon: "⚠️",
+          duration: 4000,
+        });
+        return;
+      }
+
+      // Add transaction to history (pending)
+      const transaction = addTransaction({
+        fromChain: sourceChain,
+        toChain: targetChain,
+        amount,
+        status: "pending",
+      });
+
+      // Show loading toast
+      const loadingToast = toast.loading("Processing Bridge & Execute...", {
+        icon: "🔄",
+      });
+
+      // Trigger Bridge & Execute
+      const result = await bridgeAndExecute({
+        token: "ETH",
+        amount,
+        fromChainId: fromChain.id,
+        toChainId: toChain.id,
+        executeAction,
+      });
+
+      console.log("✅ Bridge & Execute Result:", result);
+
+      if (result.success) {
+        // Update transaction status
+        updateTransaction(transaction.id, {
+          status: "completed",
+          hash: (result as any).txHash || (result as any).transactionHash,
+          explorerUrl: result.explorerUrl,
+        });
+
+        toast.dismiss(loadingToast);
+
+        toast.success(
+          (t) => (
+            <div className="flex flex-col gap-2">
+              <div className="font-bold text-lg">
+                🎉 Bridge & Execute Successful!
+              </div>
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">From:</span>
+                  <span className="font-semibold">{fromChain.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">To:</span>
+                  <span className="font-semibold">{toChain.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Amount:</span>
+                  <span className="font-semibold">{amount} ETH</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Action:</span>
+                  <span className="font-semibold capitalize">
+                    {executeAction}
+                  </span>
+                </div>
+              </div>
+              {result.explorerUrl && (
+                <a
+                  href={result.explorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-400 hover:text-blue-300 underline mt-2"
+                  onClick={() => toast.dismiss(t.id)}
+                >
+                  View on Explorer →
+                </a>
+              )}
+            </div>
+          ),
+          {
+            duration: 10000,
+            style: {
+              maxWidth: "500px",
+            },
+          }
+        );
+
+        // Refresh balances after a short delay
+        setTimeout(() => window.location.reload(), 3000);
+      } else {
+        // Update transaction status to failed
+        updateTransaction(transaction.id, {
+          status: "failed",
+        });
+
+        toast.dismiss(loadingToast);
+        throw new Error((result as any).error || "Bridge & Execute failed");
+      }
+    } catch (error: unknown) {
+      console.error("❌ Bridge & Execute failed:", error);
 
       let errorMsg = "Unknown error";
       if (error instanceof Error) {
@@ -438,7 +684,7 @@ export function GasDashboard() {
           ></div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4 animate-fade-in">
             <div>
@@ -478,25 +724,34 @@ export function GasDashboard() {
                   )}
                 </div>
               </div>
-              <button
-                onClick={() => handleRefuelClick()}
-                disabled={!nexusReady}
-                className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-semibold transition-all backdrop-blur-sm border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                Refuel Multiple Chains
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleRefuelClick()}
+                  disabled={!nexusReady}
+                  className="bg-white/10 hover:bg-white/20 text-white px-6 py-4 rounded-xl font-semibold transition-all backdrop-blur-sm border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 shadow-lg hover:shadow-xl"
+                >
+                  Refuel Multiple Chains
+                </button>
+                <button
+                  onClick={handleBridgeExecuteClick}
+                  disabled={!nexusReady}
+                  className="bg-gradient-to-r from-green-600/20 to-cyan-600/20 hover:from-green-500/30 hover:to-cyan-500/30 text-white px-6 py-4 rounded-xl font-semibold transition-all backdrop-blur-sm border border-green-500/30 hover:border-green-400/50 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 shadow-lg hover:shadow-xl"
+                >
+                  ⚡ Bridge & Execute
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Chain Balances */}
-            <div className="xl:col-span-2 space-y-8">
+            <div className="lg:col-span-3 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
                   <span className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></span>
                   Your Chains
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                   {CHAIN_ARRAY.map((chain, index) => (
                     <div
                       key={chain.key}
@@ -514,15 +769,25 @@ export function GasDashboard() {
                 </div>
               </div>
 
-              {/* Transaction History */}
-              <TransactionHistory 
-                transactions={transactions} 
-                isLoading={isHistoryLoading} 
-              />
+              {/* Transaction History and Nexus Widgets - Side by Side */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <TransactionHistory
+                  transactions={transactions}
+                  isLoading={isHistoryLoading}
+                />
+
+                <NexusWidgets
+                  balances={balances}
+                  onTransactionComplete={() => {
+                    // Refresh balances when widget transactions complete
+                    setTimeout(() => window.location.reload(), 2000);
+                  }}
+                />
+              </div>
             </div>
 
             {/* Quick Refuel Section */}
-            <div className="xl:sticky xl:top-6 xl:h-fit">
+            <div className="lg:sticky lg:top-6 lg:h-fit">
               <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-xl border border-zinc-700/50 rounded-3xl p-8 shadow-2xl hover:border-zinc-600/50 transition-all duration-300 hover:shadow-blue-500/10">
                 <h2 className="text-2xl font-bold mb-8 text-white flex items-center gap-2">
                   <span className="text-2xl">⚡</span>
@@ -605,7 +870,7 @@ export function GasDashboard() {
             </div>
           </div>
 
-          {/* Modal */}
+          {/* Modals */}
           {isModalOpen && (
             <RefuelModal
               isOpen={isModalOpen}
@@ -613,6 +878,15 @@ export function GasDashboard() {
               targetChain={targetChain}
               balances={balances}
               onRefuel={handleRefuel}
+            />
+          )}
+
+          {isBridgeExecuteModalOpen && (
+            <BridgeExecuteModal
+              isOpen={isBridgeExecuteModalOpen}
+              onClose={() => setIsBridgeExecuteModalOpen(false)}
+              balances={balances}
+              onExecute={handleBridgeExecute}
             />
           )}
         </div>

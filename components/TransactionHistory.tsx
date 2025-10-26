@@ -117,6 +117,15 @@ export function TransactionHistory({
             const fromChain = CHAIN_MAP[tx.fromChain];
             const toChain = CHAIN_MAP[tx.toChain];
 
+            // Safety check for chain data
+            if (!fromChain || !toChain) {
+              console.warn(`Missing chain data for transaction ${tx.id}:`, {
+                fromChain: tx.fromChain,
+                toChain: tx.toChain,
+              });
+              return null;
+            }
+
             return (
               <div
                 key={tx.id}
@@ -127,16 +136,20 @@ export function TransactionHistory({
                     <div className="flex items-center gap-2">
                       <div
                         className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
-                        style={{ backgroundColor: fromChain.color + "20" }}
+                        style={{
+                          backgroundColor: (fromChain?.color || "#666") + "20",
+                        }}
                       >
-                        {fromChain.icon}
+                        {fromChain?.icon || "?"}
                       </div>
                       <span className="text-zinc-300 text-sm">→</span>
                       <div
                         className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
-                        style={{ backgroundColor: toChain.color + "20" }}
+                        style={{
+                          backgroundColor: (toChain?.color || "#666") + "20",
+                        }}
                       >
-                        {toChain.icon}
+                        {toChain?.icon || "?"}
                       </div>
                     </div>
                     <div>

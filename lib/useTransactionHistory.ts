@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Transaction } from "@/components/TransactionHistory";
+import { ChainKey } from "@/lib/chains";
 
 const STORAGE_KEY = "gas-refuel-transactions";
 
@@ -19,28 +20,30 @@ export function useTransactionHistory() {
         const sampleTransactions: Transaction[] = [
           {
             id: "demo_1",
-            fromChain: "sepolia",
-            toChain: "baseSepolia",
+            fromChain: "sepolia" as ChainKey,
+            toChain: "baseSepolia" as ChainKey,
             amount: "0.05",
             status: "completed",
             timestamp: Date.now() - 3600000, // 1 hour ago
             hash: "0x1234567890abcdef1234567890abcdef12345678",
-            explorerUrl: "https://sepolia.etherscan.io/tx/0x1234567890abcdef1234567890abcdef12345678",
+            explorerUrl:
+              "https://sepolia.etherscan.io/tx/0x1234567890abcdef1234567890abcdef12345678",
           },
           {
             id: "demo_2",
-            fromChain: "arbitrumSepolia",
-            toChain: "optimismSepolia",
+            fromChain: "arbitrumSepolia" as ChainKey,
+            toChain: "optimismSepolia" as ChainKey,
             amount: "0.02",
             status: "completed",
             timestamp: Date.now() - 7200000, // 2 hours ago
             hash: "0xabcdef1234567890abcdef1234567890abcdef12",
-            explorerUrl: "https://sepolia-arbiscan.io/tx/0xabcdef1234567890abcdef1234567890abcdef12",
+            explorerUrl:
+              "https://sepolia-arbiscan.io/tx/0xabcdef1234567890abcdef1234567890abcdef12",
           },
           {
             id: "demo_3",
-            fromChain: "baseSepolia",
-            toChain: "sepolia",
+            fromChain: "baseSepolia" as ChainKey,
+            toChain: "sepolia" as ChainKey,
             amount: "0.1",
             status: "pending",
             timestamp: Date.now() - 300000, // 5 minutes ago
@@ -66,42 +69,55 @@ export function useTransactionHistory() {
     }
   }, [transactions, isLoading]);
 
-  const addTransaction = useCallback((transaction: Omit<Transaction, "id" | "timestamp">) => {
-    const newTransaction: Transaction = {
-      ...transaction,
-      id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: Date.now(),
-    };
+  const addTransaction = useCallback(
+    (transaction: Omit<Transaction, "id" | "timestamp">) => {
+      const newTransaction: Transaction = {
+        ...transaction,
+        id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: Date.now(),
+      };
 
-    setTransactions(prev => [newTransaction, ...prev]);
-    return newTransaction;
-  }, []);
+      setTransactions((prev) => [newTransaction, ...prev]);
+      return newTransaction;
+    },
+    []
+  );
 
-  const updateTransaction = useCallback((id: string, updates: Partial<Transaction>) => {
-    setTransactions(prev => 
-      prev.map(tx => 
-        tx.id === id ? { ...tx, ...updates } : tx
-      )
-    );
-  }, []);
+  const updateTransaction = useCallback(
+    (id: string, updates: Partial<Transaction>) => {
+      setTransactions((prev) =>
+        prev.map((tx) => (tx.id === id ? { ...tx, ...updates } : tx))
+      );
+    },
+    []
+  );
 
   const clearHistory = useCallback(() => {
     setTransactions([]);
   }, []);
 
-  const getTransactionById = useCallback((id: string) => {
-    return transactions.find(tx => tx.id === id);
-  }, [transactions]);
+  const getTransactionById = useCallback(
+    (id: string) => {
+      return transactions.find((tx) => tx.id === id);
+    },
+    [transactions]
+  );
 
-  const getTransactionsByChain = useCallback((chainKey: string) => {
-    return transactions.filter(tx => 
-      tx.fromChain === chainKey || tx.toChain === chainKey
-    );
-  }, [transactions]);
+  const getTransactionsByChain = useCallback(
+    (chainKey: string) => {
+      return transactions.filter(
+        (tx) => tx.fromChain === chainKey || tx.toChain === chainKey
+      );
+    },
+    [transactions]
+  );
 
-  const getRecentTransactions = useCallback((limit: number = 5) => {
-    return transactions.slice(0, limit);
-  }, [transactions]);
+  const getRecentTransactions = useCallback(
+    (limit: number = 5) => {
+      return transactions.slice(0, limit);
+    },
+    [transactions]
+  );
 
   return {
     transactions,

@@ -9,6 +9,7 @@ import {
   baseSepolia,
   arbitrumSepolia,
 } from "wagmi/chains";
+import { defineChain } from "viem";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";

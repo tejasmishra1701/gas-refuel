@@ -35,6 +35,42 @@ export const SUPPORTED_CHAINS = {
     color: "#FF0420",
     icon: "🔴",
   },
+  polygonAmoy: {
+    id: 80002,
+    name: "Polygon Amoy",
+    rpcUrl: "https://rpc-amoy.polygon.technology",
+    symbol: "MATIC",
+    explorer: "https://amoy.polygonscan.com",
+    color: "#8247E5",
+    icon: "🟣",
+  },
+  scrollSepolia: {
+    id: 534351,
+    name: "Scroll Sepolia",
+    rpcUrl: "https://sepolia-rpc.scroll.io",
+    symbol: "ETH",
+    explorer: "https://sepolia.scrollscan.com",
+    color: "#FFEEDA",
+    icon: "📜",
+  },
+  lineaSepolia: {
+    id: 59141,
+    name: "Linea Sepolia",
+    rpcUrl: "https://rpc.sepolia.linea.build",
+    symbol: "ETH",
+    explorer: "https://sepolia.lineascan.build",
+    color: "#121212",
+    icon: "⚡",
+  },
+  mantleSepolia: {
+    id: 5003,
+    name: "Mantle Sepolia",
+    rpcUrl: "https://rpc.sepolia.mantle.xyz",
+    symbol: "MNT",
+    explorer: "https://sepolia.mantlescan.xyz",
+    color: "#000000",
+    icon: "🔺",
+  },
 } as const;
 
 export type ChainKey = keyof typeof SUPPORTED_CHAINS;
@@ -54,6 +90,10 @@ export const CHAIN_MAP: Record<ChainKey, (typeof SUPPORTED_CHAINS)[ChainKey]> =
     baseSepolia: SUPPORTED_CHAINS.baseSepolia,
     arbitrumSepolia: SUPPORTED_CHAINS.arbitrumSepolia,
     optimismSepolia: SUPPORTED_CHAINS.optimismSepolia,
+    polygonAmoy: SUPPORTED_CHAINS.polygonAmoy,
+    scrollSepolia: SUPPORTED_CHAINS.scrollSepolia,
+    lineaSepolia: SUPPORTED_CHAINS.lineaSepolia,
+    mantleSepolia: SUPPORTED_CHAINS.mantleSepolia,
   };
 
 // Gas amount presets for modal
