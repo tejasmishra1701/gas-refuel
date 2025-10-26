@@ -16,6 +16,11 @@ export interface ParsedCSV {
   invalidCount: number;
 }
 
+export interface CSVUploadOptions {
+  useCommonAmount: boolean;
+  commonAmount: string;
+}
+
 /**
  * Validates if a string is a valid Ethereum address
  */
@@ -39,8 +44,9 @@ export function validateAmount(amount: string): boolean {
 
 /**
  * Parses a CSV file and returns validated recipients
+ * Supports both individual amounts and common amount mode
  */
-export async function parseCSV(file: File): Promise<ParsedCSV> {
+export async function parseCSV(file: File, options?: CSVUploadOptions): Promise<ParsedCSV> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
@@ -57,18 +63,39 @@ export async function parseCSV(file: File): Promise<ParsedCSV> {
         lines.forEach((line, index) => {
           const parts = line.split(',').map(part => part.trim());
           
-          if (parts.length !== 2) {
-            recipients.push({
-              address: parts[0] || '',
-              amount: parts[1] || '',
-              isValid: false,
-              error: `Line ${index + 1}: Expected format "address,amount"`
-            });
-            invalidCount++;
-            return;
+          // Handle different CSV formats based on options
+          let address: string;
+          let amount: string;
+          
+          if (options?.useCommonAmount) {
+            // Only address required when using common amount
+            if (parts.length !== 1) {
+              recipients.push({
+                address: parts[0] || '',
+                amount: options.commonAmount,
+                isValid: false,
+                error: `Line ${index + 1}: Expected format "address" (common amount mode)`
+              });
+              invalidCount++;
+              return;
+            }
+            address = parts[0];
+            amount = options.commonAmount;
+          } else {
+            // Traditional format: address,amount
+            if (parts.length !== 2) {
+              recipients.push({
+                address: parts[0] || '',
+                amount: parts[1] || '',
+                isValid: false,
+                error: `Line ${index + 1}: Expected format "address,amount"`
+              });
+              invalidCount++;
+              return;
+            }
+            [address, amount] = parts;
           }
           
-          const [address, amount] = parts;
           const isAddressValid = validateAddress(address);
           const isAmountValid = validateAmount(amount);
           
@@ -120,7 +147,15 @@ export async function parseCSV(file: File): Promise<ParsedCSV> {
 /**
  * Generates a sample CSV content for template download
  */
-export function generateSampleCSV(): string {
+export function generateSampleCSV(useCommonAmount: boolean = false): string {
+  if (useCommonAmount) {
+    return `0x1234567890123456789012345678901234567890
+0xabcdefabcdefabcdefabcdefabcdefabcdefabcd
+0x9876543210987654321098765432109876543210
+0x1111111111111111111111111111111111111111
+0x2222222222222222222222222222222222222222`;
+  }
+  
   return `0x1234567890123456789012345678901234567890,0.005
 0xabcdefabcdefabcdefabcdefabcdefabcdefabcd,0.01
 0x9876543210987654321098765432109876543210,0.002
@@ -131,14 +166,14 @@ export function generateSampleCSV(): string {
 /**
  * Downloads a sample CSV file
  */
-export function downloadSampleCSV(): void {
-  const csvContent = generateSampleCSV();
+export function downloadSampleCSV(useCommonAmount: boolean = false): void {
+  const csvContent = generateSampleCSV(useCommonAmount);
   const blob = new Blob([csvContent], { type: 'text/csv' });
   const url = window.URL.createObjectURL(blob);
   
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'sample_wallet_refuel.csv';
+  link.download = useCommonAmount ? 'sample_addresses.csv' : 'sample_wallet_refuel.csv';
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
