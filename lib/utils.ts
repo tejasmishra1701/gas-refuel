@@ -7,10 +7,8 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatBalance(balance: bigint, decimals: number = 18): string {
   const value = Number(balance) / Math.pow(10, decimals);
-  if (value === 0) return '0.00';
-  if (value < 0.001) return '<0.001';
-  if (value < 1) return value.toFixed(4);
-  return value.toFixed(3);
+  if (value === 0) return '0.000000000000000000';
+  return value.toFixed(18);
 }
 
 export function formatUSD(ethAmount: string, ethPrice: number = 2500): string {
