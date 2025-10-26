@@ -223,8 +223,8 @@ export function GasDashboard() {
           baseSepoliaBalance.refetch(),
           arbitrumSepoliaBalance.refetch(),
           optimismSepoliaBalance.refetch(),
-        polygonAmoyBalance.refetch(),
-        monadSepoliaBalance.refetch(),
+          polygonAmoyBalance.refetch(),
+          monadSepoliaBalance.refetch(),
         ]);
 
         // Check for failed requests
@@ -341,17 +341,6 @@ export function GasDashboard() {
       console.error("❌ Error in force balance refresh:", error);
     }
   }, [address, isConnected, refreshBalances, logBalanceState]);
-
-  // ✅ Periodic balance refresh for real-time updates
-  useEffect(() => {
-    if (!address || !isConnected) return;
-
-    const interval = setInterval(() => {
-      refreshBalances();
-    }, 10000); // Refresh every 10 seconds
-
-    return () => clearInterval(interval);
-  }, [address, isConnected, refreshBalances]);
 
   // ✅ Update balances when wagmi data changes - using useLayoutEffect for hydration safety
   useLayoutEffect(() => {
@@ -1635,15 +1624,15 @@ export function GasDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Chain Balances */}
-            <div className="lg:col-span-3 space-y-6">
+            <div className="lg:col-span-2 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
                   <span className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></span>
                   Your Chains
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {CHAIN_ARRAY.map((chain, index) => (
                     <div
                       key={chain.key}
@@ -1694,9 +1683,10 @@ export function GasDashboard() {
                   </h2>
                   <div className="space-y-4">
                     <p className="text-sm text-zinc-400 mb-4">
-                      Refuel multiple chains at once using CSV files or batch operations for maximum efficiency.
+                      Refuel multiple chains at once using CSV files or batch
+                      operations for maximum efficiency.
                     </p>
-                    
+
                     <div className="space-y-3">
                       <button
                         onClick={handleMultipleRefuelClick}
@@ -1704,7 +1694,7 @@ export function GasDashboard() {
                       >
                         🔄 Multi-Chain Refuel
                       </button>
-                      
+
                       <button
                         onClick={handleCSVBatchRefuelClick}
                         className="w-full bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-500 hover:via-purple-600 hover:to-indigo-600 text-white py-3 px-4 rounded-xl transition-all font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 text-sm"
@@ -1712,7 +1702,7 @@ export function GasDashboard() {
                         📋 CSV Batch Import
                       </button>
                     </div>
-                    
+
                     <div className="pt-3 border-t border-zinc-700/50">
                       <div className="text-xs text-zinc-500 space-y-1">
                         <div className="flex items-center gap-2">
