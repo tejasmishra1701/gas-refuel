@@ -129,6 +129,8 @@ class NexusService {
       if (
         error?.message?.includes("fee grant") ||
         error?.message?.includes("Network Error") ||
+        error?.message?.includes("Failed to fetch") ||
+        error?.message?.includes("fetch") ||
         error?.message?.includes("XAR_CA_SDK")
       ) {
         console.warn("⚠️ Using mock bridge result for demo...");

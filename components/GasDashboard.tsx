@@ -254,50 +254,55 @@ export function GasDashboard() {
 
   // ✅ Update balances when wagmi data changes
   useEffect(() => {
-    // Prevent state updates if component is unmounted
+    // Prevent state updates if component is unmounted or during hydration
     if (!mounted) return;
 
-    if (!address || !isConnected) {
-      setIsLoading(false);
-      return;
-    }
+    // Add a small delay to prevent state updates during hydration
+    const timeoutId = setTimeout(() => {
+      if (!address || !isConnected) {
+        setIsLoading(false);
+        return;
+      }
 
-    const newBalances: Record<ChainKey, bigint> = {
-      sepolia: sepoliaBalance.data?.value || BigInt(0),
-      baseSepolia: baseSepoliaBalance.data?.value || BigInt(0),
-      arbitrumSepolia: arbitrumSepoliaBalance.data?.value || BigInt(0),
-      optimismSepolia: optimismSepoliaBalance.data?.value || BigInt(0),
-      polygonAmoy: polygonAmoyBalance.data?.value || BigInt(0),
-      scrollSepolia: scrollSepoliaBalance.data?.value || BigInt(0),
-      lineaSepolia: lineaSepoliaBalance.data?.value || BigInt(0),
-      mantleSepolia: mantleSepoliaBalance.data?.value || BigInt(0),
-    };
+      const newBalances: Record<ChainKey, bigint> = {
+        sepolia: sepoliaBalance.data?.value || BigInt(0),
+        baseSepolia: baseSepoliaBalance.data?.value || BigInt(0),
+        arbitrumSepolia: arbitrumSepoliaBalance.data?.value || BigInt(0),
+        optimismSepolia: optimismSepoliaBalance.data?.value || BigInt(0),
+        polygonAmoy: polygonAmoyBalance.data?.value || BigInt(0),
+        scrollSepolia: scrollSepoliaBalance.data?.value || BigInt(0),
+        lineaSepolia: lineaSepoliaBalance.data?.value || BigInt(0),
+        mantleSepolia: mantleSepoliaBalance.data?.value || BigInt(0),
+      };
 
-    console.log("🔄 Updating balances from wagmi hooks:", {
-      sepolia: formatBalance(newBalances.sepolia),
-      baseSepolia: formatBalance(newBalances.baseSepolia),
-      arbitrumSepolia: formatBalance(newBalances.arbitrumSepolia),
-      optimismSepolia: formatBalance(newBalances.optimismSepolia),
-      polygonAmoy: formatBalance(newBalances.polygonAmoy),
-      scrollSepolia: formatBalance(newBalances.scrollSepolia),
-      lineaSepolia: formatBalance(newBalances.lineaSepolia),
-      mantleSepolia: formatBalance(newBalances.mantleSepolia),
-    });
+      console.log("🔄 Updating balances from wagmi hooks:", {
+        sepolia: formatBalance(newBalances.sepolia),
+        baseSepolia: formatBalance(newBalances.baseSepolia),
+        arbitrumSepolia: formatBalance(newBalances.arbitrumSepolia),
+        optimismSepolia: formatBalance(newBalances.optimismSepolia),
+        polygonAmoy: formatBalance(newBalances.polygonAmoy),
+        scrollSepolia: formatBalance(newBalances.scrollSepolia),
+        lineaSepolia: formatBalance(newBalances.lineaSepolia),
+        mantleSepolia: formatBalance(newBalances.mantleSepolia),
+      });
 
-    setBalances(newBalances);
+      setBalances(newBalances);
 
-    // Check if any balance is still loading
-    const isLoading =
-      sepoliaBalance.isLoading ||
-      baseSepoliaBalance.isLoading ||
-      arbitrumSepoliaBalance.isLoading ||
-      optimismSepoliaBalance.isLoading ||
-      polygonAmoyBalance.isLoading ||
-      scrollSepoliaBalance.isLoading ||
-      lineaSepoliaBalance.isLoading ||
-      mantleSepoliaBalance.isLoading;
+      // Check if any balance is still loading
+      const isLoading =
+        sepoliaBalance.isLoading ||
+        baseSepoliaBalance.isLoading ||
+        arbitrumSepoliaBalance.isLoading ||
+        optimismSepoliaBalance.isLoading ||
+        polygonAmoyBalance.isLoading ||
+        scrollSepoliaBalance.isLoading ||
+        lineaSepoliaBalance.isLoading ||
+        mantleSepoliaBalance.isLoading;
 
-    setIsLoading(isLoading);
+      setIsLoading(isLoading);
+    }, 0); // Use setTimeout to defer the state update
+
+    return () => clearTimeout(timeoutId);
   }, [
     mounted,
     address,
@@ -547,13 +552,27 @@ export function GasDashboard() {
         // Refresh balances after a short delay
         setTimeout(() => window.location.reload(), 3000);
       } else {
-        // Update transaction status to failed
+        // Check if this is a user rejection
+        const errorMessage = (result as any).error || "Transfer failed";
+        const isUserRejection =
+          errorMessage.includes("denied") ||
+          errorMessage.includes("rejected") ||
+          errorMessage.includes("User rejected") ||
+          errorMessage.includes("User denied");
+
+        if (isUserRejection) {
+          // User rejected the transaction - don't show error, just dismiss loading
+          toast.dismiss(loadingToast);
+          return; // Exit gracefully without throwing error
+        }
+
+        // Update transaction status to failed for actual errors
         updateTransaction(transaction.id, {
           status: "failed",
         });
 
         toast.dismiss(loadingToast);
-        throw new Error((result as any).error || "Transfer failed");
+        throw new Error(errorMessage);
       }
     } catch (error: unknown) {
       console.error("❌ Refuel failed:", error);
@@ -562,13 +581,27 @@ export function GasDashboard() {
       if (error instanceof Error) {
         errorMsg = error.message;
       }
-      if (errorMsg.includes("insufficient")) errorMsg = "Insufficient balance";
-      if (errorMsg.includes("denied") || errorMsg.includes("rejected"))
+
+      // Handle specific error types
+      if (errorMsg.includes("insufficient")) {
+        errorMsg = "Insufficient balance";
+      } else if (errorMsg.includes("denied") || errorMsg.includes("rejected")) {
         errorMsg = "Transaction rejected";
-      if (errorMsg.includes("Token not supported")) {
+      } else if (
+        errorMsg.includes("Failed to fetch") ||
+        errorMsg.includes("Network Error") ||
+        errorMsg.includes("fetch")
+      ) {
+        errorMsg =
+          "Network connection failed. Please check your internet connection and try again.";
+      } else if (errorMsg.includes("Token not supported")) {
         const sourceChainData = CHAIN_MAP[sourceChain];
         const targetChainData = CHAIN_MAP[targetChain];
         errorMsg = `Cross-chain transfer failed. ${sourceChainData.symbol} from ${sourceChainData.name} cannot be transferred to ${targetChainData.name}. Try using ETH for cross-chain transfers.`;
+      } else if (errorMsg.includes("timeout") || errorMsg.includes("TIMEOUT")) {
+        errorMsg = "Request timed out. Please try again.";
+      } else if (errorMsg.includes("CORS") || errorMsg.includes("cors")) {
+        errorMsg = "Network access denied. Please try again.";
       }
 
       toast.error(errorMsg, {
@@ -902,13 +935,13 @@ export function GasDashboard() {
                 <p className="text-blue-100 text-sm font-medium mb-3 uppercase tracking-wider">
                   Total Gas Balance
                 </p>
-                <p className="text-5xl font-bold text-white mb-2 tracking-tight flex items-center gap-3">
+                <div className="text-5xl font-bold text-white mb-2 tracking-tight flex items-center gap-3">
                   <span className="font-mono">{totalBalance}</span>
                   <span className="text-2xl">ETH</span>
                   {isLoading && (
                     <div className="w-6 h-6 border-2 border-blue-200 border-t-transparent rounded-full animate-spin"></div>
                   )}
-                </p>
+                </div>
                 <div className="flex items-center gap-3">
                   {nexusReady ? (
                     <span className="text-sm text-green-300 bg-green-500/20 px-3 py-1 rounded-full flex items-center gap-2">
