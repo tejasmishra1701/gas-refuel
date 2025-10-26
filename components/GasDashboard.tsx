@@ -609,9 +609,9 @@ export function GasDashboard() {
 
         <div className="text-center relative z-10">
           <div className="text-6xl mb-6 animate-pulse">⛽</div>
-          <div className="relative">
+          {/* <div className="relative">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-zinc-800 border-t-blue-500 mx-auto mb-6"></div>
-          </div>
+          </div> */}
           <p className="text-zinc-400 text-lg font-medium">Loading...</p>
         </div>
       </div>
