@@ -531,8 +531,18 @@ export function GasDashboard() {
                     className="text-xs text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
                     onClick={() => toast.dismiss(t.id)}
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
                     </svg>
                     View Transaction
                   </a>
@@ -545,8 +555,18 @@ export function GasDashboard() {
                     className="text-xs text-green-400 hover:text-green-300 underline flex items-center gap-1"
                     onClick={() => toast.dismiss(t.id)}
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
                     </svg>
                     Source Chain
                   </a>
@@ -566,11 +586,11 @@ export function GasDashboard() {
         setTimeout(() => {
           refreshBalances();
         }, 1000); // First refresh after 1 second
-        
+
         setTimeout(() => {
           refreshBalances();
         }, 3000); // Second refresh after 3 seconds
-        
+
         setTimeout(() => {
           refreshBalances();
         }, 5000); // Third refresh after 5 seconds
@@ -765,8 +785,18 @@ export function GasDashboard() {
                     className="text-xs text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
                     onClick={() => toast.dismiss(t.id)}
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
                     </svg>
                     View Transaction
                   </a>
@@ -779,8 +809,18 @@ export function GasDashboard() {
                     className="text-xs text-green-400 hover:text-green-300 underline flex items-center gap-1"
                     onClick={() => toast.dismiss(t.id)}
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
                     </svg>
                     Source Chain
                   </a>
@@ -800,11 +840,11 @@ export function GasDashboard() {
         setTimeout(() => {
           refreshBalances();
         }, 1000); // First refresh after 1 second
-        
+
         setTimeout(() => {
           refreshBalances();
         }, 3000); // Second refresh after 3 seconds
-        
+
         setTimeout(() => {
           refreshBalances();
         }, 5000); // Third refresh after 5 seconds
