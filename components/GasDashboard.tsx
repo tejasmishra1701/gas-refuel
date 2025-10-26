@@ -36,9 +36,7 @@ export function GasDashboard() {
     arbitrumSepolia: BigInt(0),
     optimismSepolia: BigInt(0),
     polygonAmoy: BigInt(0),
-    scrollSepolia: BigInt(0),
-    lineaSepolia: BigInt(0),
-    mantleSepolia: BigInt(0),
+    monadSepolia: BigInt(0),
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -192,19 +190,9 @@ export function GasDashboard() {
     chainId: 80002, // Polygon Amoy
   });
 
-  const scrollSepoliaBalance = useBalance({
+  const monadSepoliaBalance = useBalance({
     address,
-    chainId: 534351, // Scroll Sepolia
-  });
-
-  const lineaSepoliaBalance = useBalance({
-    address,
-    chainId: 59141, // Linea Sepolia
-  });
-
-  const mantleSepoliaBalance = useBalance({
-    address,
-    chainId: 5003, // Mantle Sepolia
+    chainId: 999999999, // Monad Sepolia
   });
 
   // ✅ Computed total balance - updates automatically when any balance changes
@@ -235,10 +223,8 @@ export function GasDashboard() {
           baseSepoliaBalance.refetch(),
           arbitrumSepoliaBalance.refetch(),
           optimismSepoliaBalance.refetch(),
-          polygonAmoyBalance.refetch(),
-          scrollSepoliaBalance.refetch(),
-          lineaSepoliaBalance.refetch(),
-          mantleSepoliaBalance.refetch(),
+        polygonAmoyBalance.refetch(),
+        monadSepoliaBalance.refetch(),
         ]);
 
         // Check for failed requests
@@ -270,9 +256,7 @@ export function GasDashboard() {
       arbitrumSepoliaBalance,
       optimismSepoliaBalance,
       polygonAmoyBalance,
-      scrollSepoliaBalance,
-      lineaSepoliaBalance,
-      mantleSepoliaBalance,
+      monadSepoliaBalance,
     ]
   );
 
@@ -303,14 +287,8 @@ export function GasDashboard() {
         polygonAmoy: polygonAmoyBalance.data?.value
           ? formatBalance(polygonAmoyBalance.data.value)
           : "loading",
-        scrollSepolia: scrollSepoliaBalance.data?.value
-          ? formatBalance(scrollSepoliaBalance.data.value)
-          : "loading",
-        lineaSepolia: lineaSepoliaBalance.data?.value
-          ? formatBalance(lineaSepoliaBalance.data.value)
-          : "loading",
-        mantleSepolia: mantleSepoliaBalance.data?.value
-          ? formatBalance(mantleSepoliaBalance.data.value)
+        monadSepolia: monadSepoliaBalance.data?.value
+          ? formatBalance(monadSepoliaBalance.data.value)
           : "loading",
       },
     });
@@ -323,9 +301,7 @@ export function GasDashboard() {
     arbitrumSepoliaBalance,
     optimismSepoliaBalance,
     polygonAmoyBalance,
-    scrollSepoliaBalance,
-    lineaSepoliaBalance,
-    mantleSepoliaBalance,
+    monadSepoliaBalance,
   ]);
 
   // ✅ Enhanced function to force balance refresh after transactions
@@ -395,9 +371,7 @@ export function GasDashboard() {
         arbitrumSepolia: arbitrumSepoliaBalance.data?.value || BigInt(0),
         optimismSepolia: optimismSepoliaBalance.data?.value || BigInt(0),
         polygonAmoy: polygonAmoyBalance.data?.value || BigInt(0),
-        scrollSepolia: scrollSepoliaBalance.data?.value || BigInt(0),
-        lineaSepolia: lineaSepoliaBalance.data?.value || BigInt(0),
-        mantleSepolia: mantleSepoliaBalance.data?.value || BigInt(0),
+        monadSepolia: monadSepoliaBalance.data?.value || BigInt(0),
       };
 
       console.log("🔄 Updating balances from wagmi hooks:", {
@@ -406,9 +380,7 @@ export function GasDashboard() {
         arbitrumSepolia: formatBalance(newBalances.arbitrumSepolia),
         optimismSepolia: formatBalance(newBalances.optimismSepolia),
         polygonAmoy: formatBalance(newBalances.polygonAmoy),
-        scrollSepolia: formatBalance(newBalances.scrollSepolia),
-        lineaSepolia: formatBalance(newBalances.lineaSepolia),
-        mantleSepolia: formatBalance(newBalances.mantleSepolia),
+        monadSepolia: formatBalance(newBalances.monadSepolia),
       });
 
       setBalances(newBalances);
@@ -420,9 +392,7 @@ export function GasDashboard() {
         arbitrumSepoliaBalance.isLoading ||
         optimismSepoliaBalance.isLoading ||
         polygonAmoyBalance.isLoading ||
-        scrollSepoliaBalance.isLoading ||
-        lineaSepoliaBalance.isLoading ||
-        mantleSepoliaBalance.isLoading;
+        monadSepoliaBalance.isLoading;
 
       setIsLoading(isLoading);
     };
@@ -440,17 +410,13 @@ export function GasDashboard() {
     arbitrumSepoliaBalance.data?.value,
     optimismSepoliaBalance.data?.value,
     polygonAmoyBalance.data?.value,
-    scrollSepoliaBalance.data?.value,
-    lineaSepoliaBalance.data?.value,
-    mantleSepoliaBalance.data?.value,
+    monadSepoliaBalance.data?.value,
     sepoliaBalance.isLoading,
     baseSepoliaBalance.isLoading,
     arbitrumSepoliaBalance.isLoading,
     optimismSepoliaBalance.isLoading,
     polygonAmoyBalance.isLoading,
-    scrollSepoliaBalance.isLoading,
-    lineaSepoliaBalance.isLoading,
-    mantleSepoliaBalance.isLoading,
+    monadSepoliaBalance.isLoading,
   ]);
 
   // ✅ Open refuel modal

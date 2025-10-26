@@ -44,32 +44,14 @@ export const SUPPORTED_CHAINS = {
     color: "#8247E5",
     icon: "🟣",
   },
-  scrollSepolia: {
-    id: 534351,
-    name: "Scroll Sepolia",
-    rpcUrl: "https://sepolia-rpc.scroll.io",
-    symbol: "ETH",
-    explorer: "https://sepolia.scrollscan.com",
-    color: "#FFEEDA",
-    icon: "📜",
-  },
-  lineaSepolia: {
-    id: 59141,
-    name: "Linea Sepolia",
-    rpcUrl: "https://rpc.sepolia.linea.build",
-    symbol: "ETH",
-    explorer: "https://sepolia.lineascan.build",
-    color: "#121212",
-    icon: "⚡",
-  },
-  mantleSepolia: {
-    id: 5003,
-    name: "Mantle Sepolia",
-    rpcUrl: "https://rpc.sepolia.mantle.xyz",
-    symbol: "MNT",
-    explorer: "https://sepolia.mantlescan.xyz",
-    color: "#000000",
-    icon: "🔺",
+  monadSepolia: {
+    id: 999999999,
+    name: "Monad Sepolia",
+    rpcUrl: "https://sepolia-rpc.monad.xyz",
+    symbol: "MON",
+    explorer: "https://sepolia.monadscan.xyz",
+    color: "#00D4AA",
+    icon: "🔷",
   },
 } as const;
 
@@ -91,9 +73,7 @@ export const CHAIN_MAP: Record<ChainKey, (typeof SUPPORTED_CHAINS)[ChainKey]> =
     arbitrumSepolia: SUPPORTED_CHAINS.arbitrumSepolia,
     optimismSepolia: SUPPORTED_CHAINS.optimismSepolia,
     polygonAmoy: SUPPORTED_CHAINS.polygonAmoy,
-    scrollSepolia: SUPPORTED_CHAINS.scrollSepolia,
-    lineaSepolia: SUPPORTED_CHAINS.lineaSepolia,
-    mantleSepolia: SUPPORTED_CHAINS.mantleSepolia,
+    monadSepolia: SUPPORTED_CHAINS.monadSepolia,
   };
 
 // Gas amount presets for modal
