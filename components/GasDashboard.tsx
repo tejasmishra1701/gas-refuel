@@ -17,6 +17,7 @@ import { TransactionHistory } from "./TransactionHistory";
 import { BridgeExecuteModal } from "./BridgeExecuteModal";
 import { NexusWidgets } from "./NexusWidgets";
 import { ChainIcon } from "./ChainIcon";
+import { WalletErrorDisplay } from "./WalletErrorDisplay";
 import { CHAIN_ARRAY, ChainKey, CHAIN_MAP } from "@/lib/chains";
 import { formatBalance } from "@/lib/utils";
 import {
@@ -26,6 +27,7 @@ import {
   bridgeAndExecute,
 } from "@/lib/nexus";
 import { useTransactionHistory } from "@/lib/useTransactionHistory";
+import { handleWalletError, isMetaMaskInstalled, isSupportedNetwork } from "@/lib/walletUtils";
 import toast, { Toaster } from "react-hot-toast";
 
 export function GasDashboard() {
@@ -119,6 +121,47 @@ export function GasDashboard() {
       return () => clearTimeout(timeout);
     }
   }, [mounted, walletClient, nexusReady]);
+
+  // ✅ Handle wallet connection errors
+  useEffect(() => {
+    if (!mounted) return;
+
+    // Check if MetaMask is installed
+    if (!isMetaMaskInstalled()) {
+      toast.error("MetaMask is not installed. Please install MetaMask to continue.", {
+        duration: 5000,
+      });
+      return;
+    }
+
+    // Listen for account changes
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        toast.error("Wallet disconnected. Please reconnect your wallet.");
+      }
+    };
+
+    // Listen for chain changes
+    const handleChainChanged = (chainId: string) => {
+      const numericChainId = parseInt(chainId, 16);
+      if (!isSupportedNetwork(numericChainId)) {
+        toast.error(`Unsupported network detected. Please switch to a supported testnet.`, {
+          duration: 5000,
+        });
+      }
+    };
+
+    // Add event listeners
+    if (typeof window !== "undefined" && (window as any).ethereum) {
+      (window as any).ethereum.on('accountsChanged', handleAccountsChanged);
+      (window as any).ethereum.on('chainChanged', handleChainChanged);
+
+      return () => {
+        (window as any).ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        (window as any).ethereum.removeListener('chainChanged', handleChainChanged);
+      };
+    }
+  }, [mounted]);
 
   // ✅ Persist wallet connection state for 5 minutes
   useEffect(() => {
@@ -1572,6 +1615,9 @@ export function GasDashboard() {
               <ConnectButton />
             </div>
           </div>
+
+          {/* Wallet Error Display */}
+          <WalletErrorDisplay isConnected={isConnected} address={address} />
 
           {/* Total Balance Card */}
           <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-3xl p-8 mb-10 shadow-2xl border border-blue-500/20 backdrop-blur-xl animate-slide-up hover:shadow-blue-500/20 transition-all duration-300 hover:scale-[1.02]">

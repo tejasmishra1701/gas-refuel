@@ -67,6 +67,19 @@ const mantleSepolia = defineChain({
   testnet: true,
 });
 
+const monadSepolia = defineChain({
+  id: 999999999,
+  name: "Monad Sepolia",
+  nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://sepolia-rpc.monad.xyz"] },
+  },
+  blockExplorers: {
+    default: { name: "Monadscan", url: "https://sepolia.monadscan.xyz" },
+  },
+  testnet: true,
+});
+
 // Create config outside component to prevent re-initialization
 const config = getDefaultConfig({
   appName: "FuelFlow",
@@ -80,6 +93,7 @@ const config = getDefaultConfig({
     scrollSepolia,
     lineaSepolia,
     mantleSepolia,
+    monadSepolia,
   ] as any,
 });
 
