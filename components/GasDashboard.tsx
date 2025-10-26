@@ -469,6 +469,10 @@ export function GasDashboard() {
     setIsBridgeExecuteModalOpen(true);
   };
 
+  const handleCSVBatchRefuelClick = () => {
+    setIsMultipleRefuelModalOpen(true);
+  };
+
   const handleQuickRefuel = async () => {
     console.log("🚀 Quick Refuel Button Clicked");
     console.log("Nexus Ready:", nexusReady);
