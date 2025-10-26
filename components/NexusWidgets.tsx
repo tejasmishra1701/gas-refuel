@@ -4,9 +4,6 @@ import React, { useState } from "react";
 import {
   NexusProvider,
   useNexus,
-  BridgeButton,
-  TransferButton,
-  SwapButton,
   SUPPORTED_CHAINS_IDS,
   SUPPORTED_TOKENS,
 } from "@avail-project/nexus-widgets";
@@ -27,9 +24,26 @@ function NexusWidgetsContent({
   const [activeTab, setActiveTab] = useState<
     "bridge" | "transfer" | "swap" | "bridgeExecute"
   >("bridge");
+
+  // Bridge widget state
+  const [bridgeFromChain, setBridgeFromChain] = useState(11155111); // Ethereum Sepolia
+  const [bridgeToChain, setBridgeToChain] = useState(84532); // Base Sepolia
+  const [bridgeAmount, setBridgeAmount] = useState("0.05");
+  
+  // Transfer widget state
+  const [transferToChain, setTransferToChain] = useState(84532); // Base Sepolia
+  const [transferAmount, setTransferAmount] = useState("0.03");
+  
+  // Swap widget state
+  const [swapFromChain, setSwapFromChain] = useState(11155111); // Ethereum Sepolia
+  const [swapToChain, setSwapToChain] = useState(84532); // Base Sepolia
+  const [swapFromToken, setSwapFromToken] = useState("ETH");
+  const [swapToToken, setSwapToToken] = useState("USDC");
+  const [swapAmount, setSwapAmount] = useState("0.01");
   
   // Bridge & Execute widget state
-  const [bridgeExecuteFromChain, setBridgeExecuteFromChain] = useState(11155111); // Ethereum Sepolia
+  const [bridgeExecuteFromChain, setBridgeExecuteFromChain] =
+    useState(11155111); // Ethereum Sepolia
   const [bridgeExecuteToChain, setBridgeExecuteToChain] = useState(84532); // Base Sepolia
   const [bridgeExecuteAmount, setBridgeExecuteAmount] = useState("0.05");
   const [bridgeExecuteAction, setBridgeExecuteAction] = useState("stake");
@@ -123,28 +137,120 @@ function NexusWidgetsContent({
           <h3 className="text-lg font-semibold text-white mb-4">
             Bridge Widget
           </h3>
-          <BridgeButton
-            prefill={{
-              fromChainId: 11155111, // Ethereum Sepolia
-              toChainId: 84532, // Base Sepolia
-              token: "ETH", // Both chains use ETH
-              amount: "0.05",
-            }}
-            title="Bridge ETH with Nexus Widget"
-          >
-            {({ onClick, isLoading }) => (
-              <button
-                onClick={() => {
-                  onClick();
-                  handleTransactionComplete();
-                }}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 hover:from-blue-500 hover:via-blue-600 hover:to-purple-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
-              >
-                {isLoading ? "⏳ Bridging..." : "🌉 Bridge ETH (Widget)"}
-              </button>
-            )}
-          </BridgeButton>
+          
+          {/* Custom Bridge Implementation */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                  From Chain
+                </label>
+                <select
+                  value={bridgeFromChain}
+                  onChange={(e) => setBridgeFromChain(Number(e.target.value))}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 cursor-pointer"
+                >
+                  <option value={11155111}>Ethereum Sepolia</option>
+                  <option value={84532}>Base Sepolia</option>
+                  <option value={421614}>Arbitrum Sepolia</option>
+                  <option value={11155420}>Optimism Sepolia</option>
+                  <option value={80002}>Polygon Amoy</option>
+                  <option value={534351}>Scroll Sepolia</option>
+                  <option value={59141}>Linea Sepolia</option>
+                  <option value={5003}>Mantle Sepolia</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                  To Chain
+                </label>
+                <select
+                  value={bridgeToChain}
+                  onChange={(e) => setBridgeToChain(Number(e.target.value))}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800 cursor-pointer"
+                >
+                  <option value={11155111}>Ethereum Sepolia</option>
+                  <option value={84532}>Base Sepolia</option>
+                  <option value={421614}>Arbitrum Sepolia</option>
+                  <option value={11155420}>Optimism Sepolia</option>
+                  <option value={80002}>Polygon Amoy</option>
+                  <option value={534351}>Scroll Sepolia</option>
+                  <option value={59141}>Linea Sepolia</option>
+                  <option value={5003}>Mantle Sepolia</option>
+                </select>
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                Amount (ETH)
+              </label>
+              <input
+                type="number"
+                step="0.0001"
+                min="0"
+                value={bridgeAmount}
+                onChange={(e) => setBridgeAmount(e.target.value)}
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:bg-zinc-800"
+                placeholder="0.05"
+              />
+            </div>
+            
+            <button
+              onClick={async () => {
+                if (bridgeFromChain === bridgeToChain) {
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Source and target chains cannot be the same.", {
+                    icon: "⚠️",
+                    duration: 4000,
+                  });
+                  return;
+                }
+                
+                if (!bridgeAmount || parseFloat(bridgeAmount) <= 0) {
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Please enter a valid amount.", {
+                    icon: "⚠️",
+                    duration: 4000,
+                  });
+                  return;
+                }
+                
+                try {
+                  const { bridgeTokens } = await import("@/lib/nexus");
+                  
+                  const result = await bridgeTokens({
+                    token: "ETH",
+                    amount: bridgeAmount,
+                    fromChainId: bridgeFromChain,
+                    toChainId: bridgeToChain,
+                  });
+                  
+                  console.log("Bridge Widget Result:", result);
+                  
+                  if (result.success) {
+                    handleTransactionComplete();
+                    const { default: toast } = await import("react-hot-toast");
+                    toast.success("Bridge completed successfully!", {
+                      icon: "🎉",
+                      duration: 5000,
+                    });
+                  }
+                } catch (error) {
+                  console.error("Bridge Widget Error:", error);
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Bridge failed. Please try again.", {
+                    icon: "❌",
+                    duration: 5000,
+                  });
+                }
+              }}
+              disabled={!bridgeAmount || parseFloat(bridgeAmount) <= 0 || bridgeFromChain === bridgeToChain}
+              className="w-full bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 hover:from-blue-500 hover:via-blue-600 hover:to-purple-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+            >
+              🌉 Bridge ETH (Widget)
+            </button>
+          </div>
         </div>
       )}
 
@@ -154,27 +260,90 @@ function NexusWidgetsContent({
           <h3 className="text-lg font-semibold text-white mb-4">
             Transfer Widget
           </h3>
-          <TransferButton
-            prefill={{
-              toChainId: 84532, // Base Sepolia
-              token: "ETH",
-              amount: "0.03",
-            }}
-            title="Transfer ETH with Nexus Widget"
-          >
-            {({ onClick, isLoading }) => (
-              <button
-                onClick={() => {
-                  onClick();
-                  handleTransactionComplete();
-                }}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-green-600 via-green-700 to-cyan-700 hover:from-green-500 hover:via-green-600 hover:to-cyan-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+          
+          {/* Custom Transfer Implementation */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                To Chain
+              </label>
+              <select
+                value={transferToChain}
+                onChange={(e) => setTransferToChain(Number(e.target.value))}
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all hover:bg-zinc-800 cursor-pointer"
               >
-                {isLoading ? "⏳ Transferring..." : "💸 Transfer ETH (Widget)"}
-              </button>
-            )}
-          </TransferButton>
+                <option value={11155111}>Ethereum Sepolia</option>
+                <option value={84532}>Base Sepolia</option>
+                <option value={421614}>Arbitrum Sepolia</option>
+                <option value={11155420}>Optimism Sepolia</option>
+                <option value={80002}>Polygon Amoy</option>
+                <option value={534351}>Scroll Sepolia</option>
+                <option value={59141}>Linea Sepolia</option>
+                <option value={5003}>Mantle Sepolia</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                Amount (ETH)
+              </label>
+              <input
+                type="number"
+                step="0.0001"
+                min="0"
+                value={transferAmount}
+                onChange={(e) => setTransferAmount(e.target.value)}
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all hover:bg-zinc-800"
+                placeholder="0.03"
+              />
+            </div>
+            
+            <button
+              onClick={async () => {
+                if (!transferAmount || parseFloat(transferAmount) <= 0) {
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Please enter a valid amount.", {
+                    icon: "⚠️",
+                    duration: 4000,
+                  });
+                  return;
+                }
+                
+                try {
+                  const { bridgeTokens } = await import("@/lib/nexus");
+                  
+                  const result = await bridgeTokens({
+                    token: "ETH",
+                    amount: transferAmount,
+                    fromChainId: 11155111, // Default from Ethereum Sepolia
+                    toChainId: transferToChain,
+                  });
+                  
+                  console.log("Transfer Widget Result:", result);
+                  
+                  if (result.success) {
+                    handleTransactionComplete();
+                    const { default: toast } = await import("react-hot-toast");
+                    toast.success("Transfer completed successfully!", {
+                      icon: "🎉",
+                      duration: 5000,
+                    });
+                  }
+                } catch (error) {
+                  console.error("Transfer Widget Error:", error);
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Transfer failed. Please try again.", {
+                    icon: "❌",
+                    duration: 5000,
+                  });
+                }
+              }}
+              disabled={!transferAmount || parseFloat(transferAmount) <= 0}
+              className="w-full bg-gradient-to-r from-green-600 via-green-700 to-cyan-700 hover:from-green-500 hover:via-green-600 hover:to-cyan-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+            >
+              💸 Transfer ETH (Widget)
+            </button>
+          </div>
         </div>
       )}
 
@@ -182,29 +351,162 @@ function NexusWidgetsContent({
       {activeTab === "swap" && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-white mb-4">Swap Widget</h3>
-          <SwapButton
-            prefill={{
-              fromChainId: 11155111, // Ethereum Sepolia
-              toChainId: 84532, // Base Sepolia
-              fromToken: "ETH",
-              toToken: "USDC",
-              fromAmount: "0.01",
-            }}
-            title="Swap ETH to USDC with Nexus Widget"
-          >
-            {({ onClick, isLoading }) => (
-              <button
-                onClick={() => {
-                  onClick();
-                  handleTransactionComplete();
-                }}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-orange-600 via-orange-700 to-red-700 hover:from-orange-500 hover:via-orange-600 hover:to-red-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
-              >
-                {isLoading ? "⏳ Swapping..." : "💱 Swap ETH → USDC (Widget)"}
-              </button>
-            )}
-          </SwapButton>
+          
+          {/* Custom Swap Implementation */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                  From Chain
+                </label>
+                <select
+                  value={swapFromChain}
+                  onChange={(e) => setSwapFromChain(Number(e.target.value))}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all hover:bg-zinc-800 cursor-pointer"
+                >
+                  <option value={11155111}>Ethereum Sepolia</option>
+                  <option value={84532}>Base Sepolia</option>
+                  <option value={421614}>Arbitrum Sepolia</option>
+                  <option value={11155420}>Optimism Sepolia</option>
+                  <option value={80002}>Polygon Amoy</option>
+                  <option value={534351}>Scroll Sepolia</option>
+                  <option value={59141}>Linea Sepolia</option>
+                  <option value={5003}>Mantle Sepolia</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                  To Chain
+                </label>
+                <select
+                  value={swapToChain}
+                  onChange={(e) => setSwapToChain(Number(e.target.value))}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all hover:bg-zinc-800 cursor-pointer"
+                >
+                  <option value={11155111}>Ethereum Sepolia</option>
+                  <option value={84532}>Base Sepolia</option>
+                  <option value={421614}>Arbitrum Sepolia</option>
+                  <option value={11155420}>Optimism Sepolia</option>
+                  <option value={80002}>Polygon Amoy</option>
+                  <option value={534351}>Scroll Sepolia</option>
+                  <option value={59141}>Linea Sepolia</option>
+                  <option value={5003}>Mantle Sepolia</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                  From Token
+                </label>
+                <select
+                  value={swapFromToken}
+                  onChange={(e) => setSwapFromToken(e.target.value)}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all hover:bg-zinc-800 cursor-pointer"
+                >
+                  <option value="ETH">ETH</option>
+                  <option value="USDC">USDC</option>
+                  <option value="USDT">USDT</option>
+                  <option value="DAI">DAI</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                  To Token
+                </label>
+                <select
+                  value={swapToToken}
+                  onChange={(e) => setSwapToToken(e.target.value)}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all hover:bg-zinc-800 cursor-pointer"
+                >
+                  <option value="ETH">ETH</option>
+                  <option value="USDC">USDC</option>
+                  <option value="USDT">USDT</option>
+                  <option value="DAI">DAI</option>
+                </select>
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                Amount ({swapFromToken})
+              </label>
+              <input
+                type="number"
+                step="0.0001"
+                min="0"
+                value={swapAmount}
+                onChange={(e) => setSwapAmount(e.target.value)}
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all hover:bg-zinc-800"
+                placeholder="0.01"
+              />
+            </div>
+            
+            <button
+              onClick={async () => {
+                if (swapFromChain === swapToChain) {
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Source and target chains cannot be the same.", {
+                    icon: "⚠️",
+                    duration: 4000,
+                  });
+                  return;
+                }
+                
+                if (swapFromToken === swapToToken) {
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("From and to tokens cannot be the same.", {
+                    icon: "⚠️",
+                    duration: 4000,
+                  });
+                  return;
+                }
+                
+                if (!swapAmount || parseFloat(swapAmount) <= 0) {
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Please enter a valid amount.", {
+                    icon: "⚠️",
+                    duration: 4000,
+                  });
+                  return;
+                }
+                
+                try {
+                  const { bridgeTokens } = await import("@/lib/nexus");
+                  
+                  const result = await bridgeTokens({
+                    token: swapFromToken,
+                    amount: swapAmount,
+                    fromChainId: swapFromChain,
+                    toChainId: swapToChain,
+                  });
+                  
+                  console.log("Swap Widget Result:", result);
+                  
+                  if (result.success) {
+                    handleTransactionComplete();
+                    const { default: toast } = await import("react-hot-toast");
+                    toast.success(`Swap ${swapAmount} ${swapFromToken} → ${swapToToken} completed successfully!`, {
+                      icon: "🎉",
+                      duration: 5000,
+                    });
+                  }
+                } catch (error) {
+                  console.error("Swap Widget Error:", error);
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Swap failed. Please try again.", {
+                    icon: "❌",
+                    duration: 5000,
+                  });
+                }
+              }}
+              disabled={!swapAmount || parseFloat(swapAmount) <= 0 || swapFromChain === swapToChain || swapFromToken === swapToToken}
+              className="w-full bg-gradient-to-r from-orange-600 via-orange-700 to-red-700 hover:from-orange-500 hover:via-orange-600 hover:to-red-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+            >
+              💱 Swap {swapFromToken} → {swapToToken} (Widget)
+            </button>
+          </div>
         </div>
       )}
 
@@ -230,7 +532,9 @@ function NexusWidgetsContent({
                 </label>
                 <select
                   value={bridgeExecuteFromChain}
-                  onChange={(e) => setBridgeExecuteFromChain(Number(e.target.value))}
+                  onChange={(e) =>
+                    setBridgeExecuteFromChain(Number(e.target.value))
+                  }
                   className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all hover:bg-zinc-800 cursor-pointer"
                 >
                   <option value={11155111}>Ethereum Sepolia</option>
@@ -249,7 +553,9 @@ function NexusWidgetsContent({
                 </label>
                 <select
                   value={bridgeExecuteToChain}
-                  onChange={(e) => setBridgeExecuteToChain(Number(e.target.value))}
+                  onChange={(e) =>
+                    setBridgeExecuteToChain(Number(e.target.value))
+                  }
                   className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all hover:bg-zinc-800 cursor-pointer"
                 >
                   <option value={11155111}>Ethereum Sepolia</option>
@@ -263,7 +569,7 @@ function NexusWidgetsContent({
                 </select>
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-semibold text-zinc-300 mb-2">
                 Amount (ETH)
@@ -278,7 +584,7 @@ function NexusWidgetsContent({
                 placeholder="0.05"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-semibold text-zinc-300 mb-2">
                 Execute Action
@@ -294,7 +600,7 @@ function NexusWidgetsContent({
                 <option value="nft">Mint NFT</option>
               </select>
             </div>
-            
+
             <button
               onClick={async () => {
                 if (bridgeExecuteFromChain === bridgeExecuteToChain) {
@@ -305,8 +611,11 @@ function NexusWidgetsContent({
                   });
                   return;
                 }
-                
-                if (!bridgeExecuteAmount || parseFloat(bridgeExecuteAmount) <= 0) {
+
+                if (
+                  !bridgeExecuteAmount ||
+                  parseFloat(bridgeExecuteAmount) <= 0
+                ) {
                   const { default: toast } = await import("react-hot-toast");
                   toast.error("Please enter a valid amount.", {
                     icon: "⚠️",
@@ -314,11 +623,11 @@ function NexusWidgetsContent({
                   });
                   return;
                 }
-                
+
                 try {
                   // Use the same logic as the working Bridge & Execute modal
                   const { bridgeAndExecute } = await import("@/lib/nexus");
-                  
+
                   const result = await bridgeAndExecute({
                     token: "ETH",
                     amount: bridgeExecuteAmount,
@@ -326,9 +635,9 @@ function NexusWidgetsContent({
                     toChainId: bridgeExecuteToChain,
                     executeAction: bridgeExecuteAction,
                   });
-                  
+
                   console.log("Bridge & Execute Widget Result:", result);
-                  
+
                   if (result.success) {
                     handleTransactionComplete();
                     // Show success message
@@ -347,7 +656,11 @@ function NexusWidgetsContent({
                   });
                 }
               }}
-              disabled={!bridgeExecuteAmount || parseFloat(bridgeExecuteAmount) <= 0 || bridgeExecuteFromChain === bridgeExecuteToChain}
+              disabled={
+                !bridgeExecuteAmount ||
+                parseFloat(bridgeExecuteAmount) <= 0 ||
+                bridgeExecuteFromChain === bridgeExecuteToChain
+              }
               className="w-full bg-gradient-to-r from-green-600 via-green-700 to-cyan-700 hover:from-green-500 hover:via-green-600 hover:to-cyan-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
             >
               ⚡ Bridge & Execute ETH (Widget)
