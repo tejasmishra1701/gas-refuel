@@ -504,11 +504,6 @@ export function GasDashboard() {
 
         toast.dismiss(loadingToast);
 
-        // Refresh balances after successful transaction
-        setTimeout(() => {
-          refreshBalances();
-        }, 1000); // Wait 1 second for transaction to be confirmed
-
         toast.success(
           (t) => (
             <div className="flex flex-col gap-2">
@@ -533,10 +528,13 @@ export function GasDashboard() {
                     href={result.explorerUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-blue-400 hover:text-blue-300 underline"
+                    className="text-xs text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
                     onClick={() => toast.dismiss(t.id)}
                   >
-                    View Transaction →
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    View Transaction
                   </a>
                 )}
                 {(result as any).txHash && (
@@ -544,10 +542,13 @@ export function GasDashboard() {
                     href={`${fromChain.explorer}/tx/${(result as any).txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-green-400 hover:text-green-300 underline"
+                    className="text-xs text-green-400 hover:text-green-300 underline flex items-center gap-1"
                     onClick={() => toast.dismiss(t.id)}
                   >
-                    Source Chain →
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Source Chain
                   </a>
                 )}
               </div>
@@ -561,8 +562,18 @@ export function GasDashboard() {
           }
         );
 
-        // Refresh balances after a short delay
-        setTimeout(() => window.location.reload(), 3000);
+        // Refresh balances multiple times to ensure they update
+        setTimeout(() => {
+          refreshBalances();
+        }, 1000); // First refresh after 1 second
+        
+        setTimeout(() => {
+          refreshBalances();
+        }, 3000); // Second refresh after 3 seconds
+        
+        setTimeout(() => {
+          refreshBalances();
+        }, 5000); // Third refresh after 5 seconds
       } else {
         // Check if this is a user rejection
         const errorMessage = (result as any).error || "Transfer failed";
@@ -719,11 +730,6 @@ export function GasDashboard() {
 
         toast.dismiss(loadingToast);
 
-        // Refresh balances after successful transaction
-        setTimeout(() => {
-          refreshBalances();
-        }, 1000); // Wait 1 second for transaction to be confirmed
-
         toast.success(
           (t) => (
             <div className="flex flex-col gap-2">
@@ -756,10 +762,13 @@ export function GasDashboard() {
                     href={result.explorerUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-blue-400 hover:text-blue-300 underline"
+                    className="text-xs text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
                     onClick={() => toast.dismiss(t.id)}
                   >
-                    View Transaction →
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    View Transaction
                   </a>
                 )}
                 {(result as any).txHash && (
@@ -767,10 +776,13 @@ export function GasDashboard() {
                     href={`${fromChain.explorer}/tx/${(result as any).txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-green-400 hover:text-green-300 underline"
+                    className="text-xs text-green-400 hover:text-green-300 underline flex items-center gap-1"
                     onClick={() => toast.dismiss(t.id)}
                   >
-                    Source Chain →
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Source Chain
                   </a>
                 )}
               </div>
@@ -784,8 +796,18 @@ export function GasDashboard() {
           }
         );
 
-        // Refresh balances after a short delay
-        setTimeout(() => window.location.reload(), 3000);
+        // Refresh balances multiple times to ensure they update
+        setTimeout(() => {
+          refreshBalances();
+        }, 1000); // First refresh after 1 second
+        
+        setTimeout(() => {
+          refreshBalances();
+        }, 3000); // Second refresh after 3 seconds
+        
+        setTimeout(() => {
+          refreshBalances();
+        }, 5000); // Third refresh after 5 seconds
       } else {
         // Update transaction status to failed
         updateTransaction(transaction.id, {
@@ -1052,7 +1074,15 @@ export function GasDashboard() {
                   balances={balances}
                   onTransactionComplete={() => {
                     // Refresh balances when widget transactions complete
-                    setTimeout(() => window.location.reload(), 2000);
+                    setTimeout(() => {
+                      refreshBalances();
+                    }, 1000);
+                    setTimeout(() => {
+                      refreshBalances();
+                    }, 3000);
+                    setTimeout(() => {
+                      refreshBalances();
+                    }, 5000);
                   }}
                 />
               </div>

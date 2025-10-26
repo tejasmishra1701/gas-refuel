@@ -206,13 +206,41 @@ export function TransactionHistory({
                   </div>
                 </div>
 
-                {tx.hash && (
+                {(tx.hash || tx.explorerUrl) && (
                   <div className="mt-3 pt-3 border-t border-zinc-700/50">
-                    <div className="flex items-center gap-2 text-xs text-zinc-500">
-                      <span>Hash:</span>
-                      <code className="bg-zinc-900/50 px-2 py-1 rounded font-mono">
-                        {tx.hash.slice(0, 10)}...{tx.hash.slice(-8)}
-                      </code>
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      {tx.hash && (
+                        <div className="flex items-center gap-2 text-zinc-500">
+                          <span>Hash:</span>
+                          <code className="bg-zinc-900/50 px-2 py-1 rounded font-mono">
+                            {tx.hash.slice(0, 10)}...{tx.hash.slice(-8)}
+                          </code>
+                        </div>
+                      )}
+                      {tx.explorerUrl && (
+                        <a
+                          href={tx.explorerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                          title="View on Explorer"
+                        >
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
+                          </svg>
+                          Explorer
+                        </a>
+                      )}
                     </div>
                   </div>
                 )}

@@ -134,12 +134,12 @@ class NexusService {
         error?.message?.includes("XAR_CA_SDK")
       ) {
         console.warn("⚠️ Using mock bridge result for demo...");
+        const mockTxHash = `0x${Math.random().toString(16).substr(2, 64)}`;
         return {
           success: true,
-          txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
-          explorerUrl: `https://sepolia.etherscan.io/tx/0x${Math.random()
-            .toString(16)
-            .substr(2, 64)}`,
+          txHash: mockTxHash,
+          transactionHash: mockTxHash,
+          explorerUrl: `https://sepolia.etherscan.io/tx/${mockTxHash}`,
           message: "Mock bridge transaction (SDK unavailable)",
         };
       }
@@ -205,14 +205,14 @@ class NexusService {
         error?.message?.includes("XAR_CA_SDK")
       ) {
         console.warn("⚠️ Using mock Bridge & Execute result for demo...");
+        const mockTxHash = `0x${Math.random().toString(16).substr(2, 64)}`;
         return {
           success: true,
           bridgeResult: { success: true },
           executeResult: { success: true, action: params.executeAction },
-          txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
-          explorerUrl: `https://sepolia.etherscan.io/tx/0x${Math.random()
-            .toString(16)
-            .substr(2, 64)}`,
+          txHash: mockTxHash,
+          transactionHash: mockTxHash,
+          explorerUrl: `https://sepolia.etherscan.io/tx/${mockTxHash}`,
           message: `Mock Bridge & Execute: ${params.executeAction} (SDK unavailable)`,
         };
       }

@@ -213,19 +213,31 @@ function NexusWidgetsContent({
             <p className="text-sm text-zinc-400">
               This widget demonstrates advanced Nexus functionality by bridging
               ETH and executing a contract function.
-              <br />
-              <span className="text-xs text-zinc-500">
-                Note: This requires a valid contract address and ABI in a real
-                implementation.
-              </span>
             </p>
           </div>
-          <button
-            disabled
-            className="w-full bg-zinc-800/50 text-zinc-500 py-4 px-6 rounded-xl font-bold cursor-not-allowed"
+          <BridgeAndExecuteButton
+            prefill={{
+              fromChainId: 11155111, // Ethereum Sepolia
+              toChainId: 84532, // Base Sepolia
+              token: "ETH",
+              amount: "0.05",
+              executeAction: "stake", // Default action
+            }}
+            title="Bridge & Execute ETH with Nexus Widget"
           >
-            🔧 Bridge & Execute (Requires Contract Setup)
-          </button>
+            {({ onClick, isLoading }) => (
+              <button
+                onClick={() => {
+                  onClick();
+                  handleTransactionComplete();
+                }}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-green-600 via-green-700 to-cyan-700 hover:from-green-500 hover:via-green-600 hover:to-cyan-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+              >
+                {isLoading ? "⏳ Executing..." : "⚡ Bridge & Execute ETH (Widget)"}
+              </button>
+            )}
+          </BridgeAndExecuteButton>
         </div>
       )}
 
