@@ -1650,78 +1650,6 @@ export function GasDashboard() {
                 </div>
               </div>
 
-              {/* Bottom Section - Three Columns */}
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                {/* Transaction History */}
-                <TransactionHistory
-                  transactions={transactions}
-                  isLoading={isHistoryLoading}
-                />
-
-                {/* Nexus Widgets */}
-                <NexusWidgets
-                  balances={balances}
-                  onTransactionComplete={() => {
-                    // Refresh balances when widget transactions complete
-                    setTimeout(() => {
-                      refreshBalances();
-                    }, 1000);
-                    setTimeout(() => {
-                      refreshBalances();
-                    }, 3000);
-                    setTimeout(() => {
-                      refreshBalances();
-                    }, 5000);
-                  }}
-                />
-
-                {/* Bulk Fuel Station */}
-                <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-xl border border-zinc-700/50 rounded-3xl p-6 shadow-2xl hover:border-zinc-600/50 transition-all duration-300 hover:shadow-green-500/10">
-                  <h2 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
-                    <span className="text-xl">📊</span>
-                    Bulk Fuel Station
-                  </h2>
-                  <div className="space-y-4">
-                    <p className="text-sm text-zinc-400 mb-4">
-                      Refuel multiple chains at once using CSV files or batch
-                      operations for maximum efficiency.
-                    </p>
-
-                    <div className="space-y-3">
-                      <button
-                        onClick={handleMultipleRefuelClick}
-                        className="w-full bg-gradient-to-r from-green-600 via-green-700 to-emerald-700 hover:from-green-500 hover:via-green-600 hover:to-emerald-600 text-white py-3 px-4 rounded-xl transition-all font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 text-sm"
-                      >
-                        🔄 Multi-Chain Refuel
-                      </button>
-
-                      <button
-                        onClick={handleCSVBatchRefuelClick}
-                        className="w-full bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-500 hover:via-purple-600 hover:to-indigo-600 text-white py-3 px-4 rounded-xl transition-all font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 text-sm"
-                      >
-                        📋 CSV Batch Import
-                      </button>
-                    </div>
-
-                    <div className="pt-3 border-t border-zinc-700/50">
-                      <div className="text-xs text-zinc-500 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="w-1 h-1 bg-green-500 rounded-full"></span>
-                          <span>Batch operations</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-1 h-1 bg-green-500 rounded-full"></span>
-                          <span>CSV file support</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-1 h-1 bg-green-500 rounded-full"></span>
-                          <span>Gas optimization</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Quick Refuel Section */}
@@ -1803,6 +1731,79 @@ export function GasDashboard() {
                   >
                     {nexusReady ? "🚀 Quick Refuel" : "⏳ Connecting..."}
                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Section - Full Width Three Columns */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
+            {/* Transaction History */}
+            <TransactionHistory
+              transactions={transactions}
+              isLoading={isHistoryLoading}
+            />
+
+            {/* Nexus Widgets */}
+            <NexusWidgets
+              balances={balances}
+              onTransactionComplete={() => {
+                // Refresh balances when widget transactions complete
+                setTimeout(() => {
+                  refreshBalances();
+                }, 1000);
+                setTimeout(() => {
+                  refreshBalances();
+                }, 3000);
+                setTimeout(() => {
+                  refreshBalances();
+                }, 5000);
+              }}
+            />
+
+            {/* Bulk Fuel Station */}
+            <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-xl border border-zinc-700/50 rounded-3xl p-6 shadow-2xl hover:border-zinc-600/50 transition-all duration-300 hover:shadow-green-500/10">
+              <h2 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
+                <span className="text-xl">📊</span>
+                Bulk Fuel Station
+              </h2>
+              <div className="space-y-4">
+                <p className="text-sm text-zinc-400 mb-4">
+                  Refuel multiple chains at once using CSV files or batch
+                  operations for maximum efficiency.
+                </p>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleMultipleRefuelClick}
+                    className="w-full bg-gradient-to-r from-green-600 via-green-700 to-emerald-700 hover:from-green-500 hover:via-green-600 hover:to-emerald-600 text-white py-3 px-4 rounded-xl transition-all font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 text-sm"
+                  >
+                    🔄 Multi-Chain Refuel
+                  </button>
+
+                  <button
+                    onClick={handleCSVBatchRefuelClick}
+                    className="w-full bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-500 hover:via-purple-600 hover:to-indigo-600 text-white py-3 px-4 rounded-xl transition-all font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 text-sm"
+                  >
+                    📋 CSV Batch Import
+                  </button>
+                </div>
+
+                <div className="pt-3 border-t border-zinc-700/50">
+                  <div className="text-xs text-zinc-500 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-1 h-1 bg-green-500 rounded-full"></span>
+                      <span>Batch operations</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1 h-1 bg-green-500 rounded-full"></span>
+                      <span>CSV file support</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1 h-1 bg-green-500 rounded-full"></span>
+                      <span>Gas optimization</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
