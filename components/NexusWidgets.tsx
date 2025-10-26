@@ -27,6 +27,12 @@ function NexusWidgetsContent({
   const [activeTab, setActiveTab] = useState<
     "bridge" | "transfer" | "swap" | "bridgeExecute"
   >("bridge");
+  
+  // Bridge & Execute widget state
+  const [bridgeExecuteFromChain, setBridgeExecuteFromChain] = useState(11155111); // Ethereum Sepolia
+  const [bridgeExecuteToChain, setBridgeExecuteToChain] = useState(84532); // Base Sepolia
+  const [bridgeExecuteAmount, setBridgeExecuteAmount] = useState("0.05");
+  const [bridgeExecuteAction, setBridgeExecuteAction] = useState("stake");
 
   const handleInitialize = async () => {
     if (typeof window !== "undefined" && (window as any).ethereum) {
@@ -214,7 +220,7 @@ function NexusWidgetsContent({
               ETH and executing a contract function.
             </p>
           </div>
-          
+
           {/* Custom Bridge & Execute Implementation */}
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -223,11 +229,18 @@ function NexusWidgetsContent({
                   From Chain
                 </label>
                 <select
-                  value={11155111}
-                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                  disabled
+                  value={bridgeExecuteFromChain}
+                  onChange={(e) => setBridgeExecuteFromChain(Number(e.target.value))}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all hover:bg-zinc-800 cursor-pointer"
                 >
                   <option value={11155111}>Ethereum Sepolia</option>
+                  <option value={84532}>Base Sepolia</option>
+                  <option value={421614}>Arbitrum Sepolia</option>
+                  <option value={11155420}>Optimism Sepolia</option>
+                  <option value={80002}>Polygon Amoy</option>
+                  <option value={534351}>Scroll Sepolia</option>
+                  <option value={59141}>Linea Sepolia</option>
+                  <option value={5003}>Mantle Sepolia</option>
                 </select>
               </div>
               <div>
@@ -235,11 +248,18 @@ function NexusWidgetsContent({
                   To Chain
                 </label>
                 <select
-                  value={84532}
-                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                  disabled
+                  value={bridgeExecuteToChain}
+                  onChange={(e) => setBridgeExecuteToChain(Number(e.target.value))}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all hover:bg-zinc-800 cursor-pointer"
                 >
+                  <option value={11155111}>Ethereum Sepolia</option>
                   <option value={84532}>Base Sepolia</option>
+                  <option value={421614}>Arbitrum Sepolia</option>
+                  <option value={11155420}>Optimism Sepolia</option>
+                  <option value={80002}>Polygon Amoy</option>
+                  <option value={534351}>Scroll Sepolia</option>
+                  <option value={59141}>Linea Sepolia</option>
+                  <option value={5003}>Mantle Sepolia</option>
                 </select>
               </div>
             </div>
@@ -251,9 +271,11 @@ function NexusWidgetsContent({
               <input
                 type="number"
                 step="0.0001"
-                value="0.05"
-                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                disabled
+                min="0"
+                value={bridgeExecuteAmount}
+                onChange={(e) => setBridgeExecuteAmount(e.target.value)}
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all hover:bg-zinc-800"
+                placeholder="0.05"
               />
             </div>
             
@@ -262,9 +284,9 @@ function NexusWidgetsContent({
                 Execute Action
               </label>
               <select
-                value="stake"
-                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                disabled
+                value={bridgeExecuteAction}
+                onChange={(e) => setBridgeExecuteAction(e.target.value)}
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all hover:bg-zinc-800 cursor-pointer"
               >
                 <option value="stake">Stake ETH</option>
                 <option value="swap">Swap to USDC</option>
@@ -275,16 +297,34 @@ function NexusWidgetsContent({
             
             <button
               onClick={async () => {
+                if (bridgeExecuteFromChain === bridgeExecuteToChain) {
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Source and target chains cannot be the same.", {
+                    icon: "⚠️",
+                    duration: 4000,
+                  });
+                  return;
+                }
+                
+                if (!bridgeExecuteAmount || parseFloat(bridgeExecuteAmount) <= 0) {
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Please enter a valid amount.", {
+                    icon: "⚠️",
+                    duration: 4000,
+                  });
+                  return;
+                }
+                
                 try {
                   // Use the same logic as the working Bridge & Execute modal
                   const { bridgeAndExecute } = await import("@/lib/nexus");
                   
                   const result = await bridgeAndExecute({
                     token: "ETH",
-                    amount: "0.05",
-                    fromChainId: 11155111,
-                    toChainId: 84532,
-                    executeAction: "stake",
+                    amount: bridgeExecuteAmount,
+                    fromChainId: bridgeExecuteFromChain,
+                    toChainId: bridgeExecuteToChain,
+                    executeAction: bridgeExecuteAction,
                   });
                   
                   console.log("Bridge & Execute Widget Result:", result);
@@ -307,7 +347,8 @@ function NexusWidgetsContent({
                   });
                 }
               }}
-              className="w-full bg-gradient-to-r from-green-600 via-green-700 to-cyan-700 hover:from-green-500 hover:via-green-600 hover:to-cyan-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl hover:scale-105"
+              disabled={!bridgeExecuteAmount || parseFloat(bridgeExecuteAmount) <= 0 || bridgeExecuteFromChain === bridgeExecuteToChain}
+              className="w-full bg-gradient-to-r from-green-600 via-green-700 to-cyan-700 hover:from-green-500 hover:via-green-600 hover:to-cyan-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
             >
               ⚡ Bridge & Execute ETH (Widget)
             </button>
