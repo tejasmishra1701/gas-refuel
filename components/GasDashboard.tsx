@@ -27,7 +27,13 @@ import {
   bridgeAndExecute,
 } from "@/lib/nexus";
 import { useTransactionHistory } from "@/lib/useTransactionHistory";
-import { handleWalletError, isMetaMaskInstalled, isSupportedNetwork } from "@/lib/walletUtils";
+import {
+  handleWalletError,
+  isMetaMaskInstalled,
+  isSupportedNetwork,
+  requestNetworkSwitch,
+} from "@/lib/walletUtils";
+import { SUPPORTED_CHAINS } from "@/lib/chains";
 import toast, { Toaster } from "react-hot-toast";
 
 export function GasDashboard() {
@@ -57,6 +63,31 @@ export function GasDashboard() {
     useState<ChainKey>("baseSepolia");
   const [quickAmount, setQuickAmount] = useState("0.05");
   const [mounted, setMounted] = useState(false);
+
+  // Safe toast utility that checks if component is mounted
+  const safeToast = {
+    error: (message: string, options?: any) => {
+      if (mounted) {
+        toast.error(message, options);
+      }
+    },
+    success: (message: string, options?: any) => {
+      if (mounted) {
+        toast.success(message, options);
+      }
+    },
+    loading: (message: string, options?: any) => {
+      if (mounted) {
+        return toast.loading(message, options);
+      }
+      return "";
+    },
+    dismiss: (toastId: string) => {
+      if (mounted) {
+        toast.dismiss(toastId);
+      }
+    },
+  };
 
   // Transaction history
   const {
@@ -128,37 +159,61 @@ export function GasDashboard() {
 
     // Check if MetaMask is installed
     if (!isMetaMaskInstalled()) {
-      toast.error("MetaMask is not installed. Please install MetaMask to continue.", {
-        duration: 5000,
-      });
+      if (mounted) {
+        safeToast.error(
+          "MetaMask is not installed. Please install MetaMask to continue.",
+          {
+            duration: 5000,
+          }
+        );
+      }
       return;
     }
 
     // Listen for account changes
     const handleAccountsChanged = (accounts: string[]) => {
-      if (accounts.length === 0) {
-        toast.error("Wallet disconnected. Please reconnect your wallet.");
+      if (mounted && accounts.length === 0) {
+        safeToast.error("Wallet disconnected. Please reconnect your wallet.");
       }
     };
 
     // Listen for chain changes
     const handleChainChanged = (chainId: string) => {
+      if (!mounted) return;
+
       const numericChainId = parseInt(chainId, 16);
       if (!isSupportedNetwork(numericChainId)) {
-        toast.error(`Unsupported network detected. Please switch to a supported testnet.`, {
-          duration: 5000,
-        });
+        safeToast.error(
+          `Unsupported network detected. Please switch to a supported testnet using the network buttons below.`,
+          {
+            duration: 8000,
+          }
+        );
+      } else {
+        // Show success message when switching to supported network
+        safeToast.success(
+          `Successfully connected to supported network!`,
+          {
+            duration: 3000,
+          }
+        );
       }
     };
 
     // Add event listeners
     if (typeof window !== "undefined" && (window as any).ethereum) {
-      (window as any).ethereum.on('accountsChanged', handleAccountsChanged);
-      (window as any).ethereum.on('chainChanged', handleChainChanged);
+      (window as any).ethereum.on("accountsChanged", handleAccountsChanged);
+      (window as any).ethereum.on("chainChanged", handleChainChanged);
 
       return () => {
-        (window as any).ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        (window as any).ethereum.removeListener('chainChanged', handleChainChanged);
+        (window as any).ethereum.removeListener(
+          "accountsChanged",
+          handleAccountsChanged
+        );
+        (window as any).ethereum.removeListener(
+          "chainChanged",
+          handleChainChanged
+        );
       };
     }
   }, [mounted]);
