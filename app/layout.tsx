@@ -25,7 +25,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "FuelFlow",
+  title: "FuelFlow - Cross-Chain Gas Station",
   description:
     "Seamless cross-chain gas refueling powered by Avail Nexus SDK. Never run out of gas again.",
   keywords: ["cross-chain", "gas", "refuel", "blockchain", "avail", "nexus"],
