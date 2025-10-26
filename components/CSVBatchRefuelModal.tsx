@@ -102,29 +102,38 @@ export function CSVBatchRefuelModal({
         setParsedData(parsed);
       } else {
         // Parse addresses and amounts using the existing parser
-        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        const lines = text
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
         const recipients: CSVRecipient[] = [];
         let totalAmount = 0;
         let validCount = 0;
         let invalidCount = 0;
-        
+
         lines.forEach((line) => {
-          const parts = line.split(uploadOptions.delimiter).map(part => part.trim());
-          
+          const parts = line
+            .split(uploadOptions.delimiter)
+            .map((part) => part.trim());
+
           if (parts.length >= 2) {
-            const address = parts[uploadOptions.addressColumn] || '';
-            const amount = parts[uploadOptions.amountColumn] || '';
-            
+            const address = parts[uploadOptions.addressColumn] || "";
+            const amount = parts[uploadOptions.amountColumn] || "";
+
             const isValidAddress = validateAddress(address);
             const isValidAmount = validateAmount(amount);
-            
+
             recipients.push({
               address,
               amount,
               isValid: isValidAddress && isValidAmount,
-              error: !isValidAddress ? "Invalid address" : !isValidAmount ? "Invalid amount" : undefined
+              error: !isValidAddress
+                ? "Invalid address"
+                : !isValidAmount
+                ? "Invalid amount"
+                : undefined,
             });
-            
+
             if (isValidAddress && isValidAmount) {
               totalAmount += parseFloat(amount);
               validCount++;
@@ -133,20 +142,20 @@ export function CSVBatchRefuelModal({
             }
           } else {
             recipients.push({
-              address: parts[0] || '',
-              amount: '',
+              address: parts[0] || "",
+              amount: "",
               isValid: false,
-              error: "Insufficient columns"
+              error: "Insufficient columns",
             });
             invalidCount++;
           }
         });
-        
+
         const parsed: ParsedCSV = {
           recipients,
           totalAmount,
           validCount,
-          invalidCount
+          invalidCount,
         };
         setParsedData(parsed);
       }
@@ -299,7 +308,7 @@ export function CSVBatchRefuelModal({
                           Addresses Only
                         </div>
                         <div className="text-zinc-400 text-sm">
-                          CSV contains only addresses, use common amount
+                          CSV with only addresses, use common amount
                         </div>
                       </div>
                     </label>
@@ -412,8 +421,7 @@ export function CSVBatchRefuelModal({
                                 {recipient.amount} ETH
                               </td>
                               <td className="p-2 text-zinc-400">
-                                {SUPPORTED_CHAINS[recipient.chain as ChainKey]
-                                  ?.name || recipient.chain}
+                                {SUPPORTED_CHAINS[targetChain]?.name || targetChain}
                               </td>
                             </tr>
                           ))}
