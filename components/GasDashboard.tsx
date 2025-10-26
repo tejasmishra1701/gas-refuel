@@ -870,7 +870,6 @@ export function GasDashboard() {
         }}
       />
       <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black relative overflow-hidden">
-        {/* Animated background gradient orbs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-600/20 rounded-full blur-3xl animate-pulse-slow"></div>
           <div
@@ -880,7 +879,6 @@ export function GasDashboard() {
         </div>
 
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-          {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4 animate-fade-in">
             <div>
               <h1 className="text-4xl font-display text-white mb-2 flex items-center gap-3">
@@ -892,8 +890,10 @@ export function GasDashboard() {
             </div>
           </div>
 
-          {/* Total Balance Card */}
-          <div id="dashboard" className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-3xl p-8 mb-10 shadow-2xl border border-blue-500/20 backdrop-blur-xl animate-slide-up hover:shadow-blue-500/20 transition-all duration-300 hover:scale-[1.02]">
+          <div
+            id="dashboard"
+            className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-3xl p-8 mb-10 shadow-2xl border border-blue-500/20 backdrop-blur-xl animate-slide-up hover:shadow-blue-500/20 transition-all duration-300 hover:scale-[1.02]"
+          >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
               <div>
                 <p className="text-blue-100 text-sm font-medium mb-3 uppercase tracking-wider">
@@ -948,7 +948,6 @@ export function GasDashboard() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Chain Balances */}
             <div id="chains" className="lg:col-span-3 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
@@ -973,7 +972,6 @@ export function GasDashboard() {
                 </div>
               </div>
 
-              {/* Transaction History and Nexus Widgets - Side by Side */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div id="history">
                   <TransactionHistory
@@ -986,14 +984,13 @@ export function GasDashboard() {
                   <NexusWidgets
                     balances={balances}
                     onTransactionComplete={() => {
-                    // Refresh balances when widget transactions complete
-                    setTimeout(() => window.location.reload(), 2000);
-                  }}
-                />
+                      setTimeout(() => window.location.reload(), 2000);
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Quick Refuel Section */}
             <div className="lg:sticky lg:top-6 lg:h-fit">
               <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-xl border border-zinc-700/50 rounded-3xl p-8 shadow-2xl hover:border-zinc-600/50 transition-all duration-300 hover:shadow-blue-500/10">
                 <h2 className="text-2xl font-bold mb-8 text-white flex items-center gap-2">
@@ -1077,7 +1074,6 @@ export function GasDashboard() {
             </div>
           </div>
 
-          {/* Modals */}
           {isModalOpen && (
             <RefuelModal
               isOpen={isModalOpen}
