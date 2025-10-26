@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 // import { formatBalance } from "@/lib/utils"; // Not used in this component
 import { CHAIN_MAP, ChainKey } from "@/lib/chains";
+import { ChainIcon } from "./ChainIcon";
 
 export interface Transaction {
   id: string;
@@ -159,21 +160,21 @@ export function TransactionHistory({
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center"
                         style={{
                           backgroundColor: (fromChain?.color || "#666") + "20",
                         }}
                       >
-                        {fromChain?.icon || "?"}
+                        <ChainIcon chainKey={tx.fromChain} size={20} />
                       </div>
                       <span className="text-zinc-300 text-sm">→</span>
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center"
                         style={{
                           backgroundColor: (toChain?.color || "#666") + "20",
                         }}
                       >
-                        {toChain?.icon || "?"}
+                        <ChainIcon chainKey={tx.toChain} size={20} />
                       </div>
                     </div>
                     <div>
