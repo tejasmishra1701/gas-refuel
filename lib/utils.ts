@@ -1,5 +1,5 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatBalance(balance: bigint, decimals: number = 18): string {
   const value = Number(balance) / Math.pow(10, decimals);
-  if (value === 0) return '0.000000000000000000';
+  if (value === 0) return "0.000000000000000000";
   return value.toFixed(18);
 }
 
