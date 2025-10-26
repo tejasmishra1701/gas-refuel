@@ -115,7 +115,7 @@ export function TransactionHistory({
 
   return (
     <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-xl border border-zinc-700/50 rounded-3xl p-8 shadow-2xl hover:border-zinc-600/50 transition-all duration-300">
-      <h2 className="text-2xl font-bold mb-8 text-white flex items-center gap-2">
+      <h2 className="text-2xl font-bold mb-8 text-white flex items-center justify-center gap-2">
         <span className="text-2xl">📜</span>
         Transaction History
         {transactions.length > 0 && (

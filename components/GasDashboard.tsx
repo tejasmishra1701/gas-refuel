@@ -1765,11 +1765,11 @@ export function GasDashboard() {
 
             {/* Bulk Fuel Station */}
             <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-xl border border-zinc-700/50 rounded-3xl p-6 shadow-2xl hover:border-zinc-600/50 transition-all duration-300 hover:shadow-green-500/10">
-              <h2 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
+              <h2 className="text-xl font-bold mb-6 text-white flex items-center justify-center gap-2">
                 <span className="text-xl">📊</span>
                 Bulk Fuel Station
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-4 text-center">
                 <p className="text-sm text-zinc-400 mb-4">
                   Refuel multiple chains at once using CSV files or batch
                   operations for maximum efficiency.
@@ -1793,15 +1793,15 @@ export function GasDashboard() {
 
                 <div className="pt-3 border-t border-zinc-700/50">
                   <div className="text-xs text-zinc-500 space-y-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <span className="w-1 h-1 bg-green-500 rounded-full"></span>
                       <span>Batch operations</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <span className="w-1 h-1 bg-green-500 rounded-full"></span>
                       <span>CSV file support</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <span className="w-1 h-1 bg-green-500 rounded-full"></span>
                       <span>Gas optimization</span>
                     </div>
