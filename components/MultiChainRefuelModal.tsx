@@ -32,6 +32,7 @@ export function MultiChainRefuelModal({
   const [refuelTargets, setRefuelTargets] = useState<RefuelTarget[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customAmount, setCustomAmount] = useState("0.05");
 
   useEffect(() => {
     if (isOpen) {
@@ -69,8 +70,17 @@ export function MultiChainRefuelModal({
     );
   };
 
-  const handlePresetSelect = (preset: typeof GAS_PRESETS[0]) => {
-    if (preset.label === "Custom") return;
+  const handlePresetSelect = (preset: (typeof GAS_PRESETS)[0]) => {
+    if (preset.label === "Custom") {
+      // Apply custom amount to all enabled targets
+      setRefuelTargets((prev) =>
+        prev.map((target) => ({
+          ...target,
+          amount: target.enabled ? customAmount : target.amount,
+        }))
+      );
+      return;
+    }
 
     setRefuelTargets((prev) =>
       prev.map((target) => ({
@@ -82,7 +92,7 @@ export function MultiChainRefuelModal({
 
   const handleMultiRefuel = async () => {
     const enabledTargets = refuelTargets.filter((target) => target.enabled);
-    
+
     if (enabledTargets.length === 0) {
       setError("Please select at least one chain to refuel");
       return;
@@ -95,7 +105,9 @@ export function MultiChainRefuelModal({
       await onRefuelMultiple(enabledTargets);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Multi-chain refuel failed");
+      setError(
+        err instanceof Error ? err.message : "Multi-chain refuel failed"
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -145,9 +157,35 @@ export function MultiChainRefuelModal({
                     className="bg-zinc-700/50 hover:bg-zinc-600/50 text-white p-3 rounded-lg transition-all font-semibold text-sm"
                   >
                     <div className="font-bold">{preset.label}</div>
-                    <div className="text-xs text-zinc-400">{preset.eth} ETH</div>
+                    <div className="text-xs text-zinc-400">
+                      {preset.eth} ETH
+                    </div>
                   </button>
                 ))}
+              </div>
+              
+              {/* Custom Amount Input */}
+              <div className="mt-4 pt-4 border-t border-zinc-700/50">
+                <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                  Custom Amount (ETH)
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    step="0.0001"
+                    min="0"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                    className="flex-1 bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                    placeholder="0.05"
+                  />
+                  <button
+                    onClick={() => handlePresetSelect({ label: "Custom", eth: customAmount })}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-4 py-3 rounded-xl transition-all font-semibold"
+                  >
+                    Apply Custom
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -156,12 +194,12 @@ export function MultiChainRefuelModal({
               <h3 className="text-lg font-semibold text-white mb-4">
                 Select Chains to Refuel
               </h3>
-              
+
               <div className="space-y-4">
                 {refuelTargets.map((target) => {
                   const chain = SUPPORTED_CHAINS[target.chain];
                   const currentBalance = formatBalance(balances[target.chain]);
-                  
+
                   return (
                     <div
                       key={target.chain}
@@ -171,25 +209,31 @@ export function MultiChainRefuelModal({
                         <input
                           type="checkbox"
                           checked={target.enabled}
-                          onChange={(e) => handleEnabledChange(target.chain, e.target.checked)}
+                          onChange={(e) =>
+                            handleEnabledChange(target.chain, e.target.checked)
+                          }
                           className="w-5 h-5 text-green-600 bg-zinc-800 border-zinc-600 rounded focus:ring-green-500 focus:ring-2"
                         />
                         <span className="text-2xl">{chain.icon}</span>
                         <div>
-                          <div className="text-white font-semibold">{chain.name}</div>
+                          <div className="text-white font-semibold">
+                            {chain.name}
+                          </div>
                           <div className="text-zinc-400 text-sm">
                             Current: {currentBalance} ETH
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
                           step="0.0001"
                           min="0"
                           value={target.amount}
-                          onChange={(e) => handleAmountChange(target.chain, e.target.value)}
+                          onChange={(e) =>
+                            handleAmountChange(target.chain, e.target.value)
+                          }
                           className="w-24 bg-zinc-800/70 border border-zinc-700/70 p-2 rounded-lg text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm"
                           placeholder="0.05"
                         />
@@ -207,19 +251,25 @@ export function MultiChainRefuelModal({
                 <h3 className="text-lg font-semibold text-white mb-4">
                   Refuel Summary
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div className="bg-zinc-700/50 rounded-lg p-3">
                     <div className="text-zinc-400">Chains Selected</div>
-                    <div className="text-white font-semibold">{getEnabledCount()}</div>
+                    <div className="text-white font-semibold">
+                      {getEnabledCount()}
+                    </div>
                   </div>
                   <div className="bg-zinc-700/50 rounded-lg p-3">
                     <div className="text-zinc-400">Total Amount</div>
-                    <div className="text-white font-semibold">{getTotalAmount()} ETH</div>
+                    <div className="text-white font-semibold">
+                      {getTotalAmount()} ETH
+                    </div>
                   </div>
                   <div className="bg-zinc-700/50 rounded-lg p-3">
                     <div className="text-zinc-400">Estimated Cost</div>
-                    <div className="text-white font-semibold">${(parseFloat(getTotalAmount()) * 2000).toFixed(2)}</div>
+                    <div className="text-white font-semibold">
+                      ${(parseFloat(getTotalAmount()) * 2000).toFixed(2)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -245,7 +295,9 @@ export function MultiChainRefuelModal({
                 disabled={getEnabledCount() === 0 || isProcessing}
                 className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isProcessing ? "Processing..." : `🔄 Refuel ${getEnabledCount()} Chains`}
+                {isProcessing
+                  ? "Processing..."
+                  : `🔄 Refuel ${getEnabledCount()} Chains`}
               </button>
             </div>
           </div>
