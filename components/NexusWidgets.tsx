@@ -7,7 +7,6 @@ import {
   BridgeButton,
   TransferButton,
   SwapButton,
-  BridgeAndExecuteButton,
   SUPPORTED_CHAINS_IDS,
   SUPPORTED_TOKENS,
 } from "@avail-project/nexus-widgets";
@@ -215,29 +214,104 @@ function NexusWidgetsContent({
               ETH and executing a contract function.
             </p>
           </div>
-          <BridgeAndExecuteButton
-            prefill={{
-              fromChainId: 11155111, // Ethereum Sepolia
-              toChainId: 84532, // Base Sepolia
-              token: "ETH",
-              amount: "0.05",
-              executeAction: "stake", // Default action
-            }}
-            title="Bridge & Execute ETH with Nexus Widget"
-          >
-            {({ onClick, isLoading }) => (
-              <button
-                onClick={() => {
-                  onClick();
-                  handleTransactionComplete();
-                }}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-green-600 via-green-700 to-cyan-700 hover:from-green-500 hover:via-green-600 hover:to-cyan-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+          
+          {/* Custom Bridge & Execute Implementation */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                  From Chain
+                </label>
+                <select
+                  value={11155111}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                  disabled
+                >
+                  <option value={11155111}>Ethereum Sepolia</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                  To Chain
+                </label>
+                <select
+                  value={84532}
+                  className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                  disabled
+                >
+                  <option value={84532}>Base Sepolia</option>
+                </select>
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                Amount (ETH)
+              </label>
+              <input
+                type="number"
+                step="0.0001"
+                value="0.05"
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                disabled
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-zinc-300 mb-2">
+                Execute Action
+              </label>
+              <select
+                value="stake"
+                className="w-full bg-zinc-800/70 border border-zinc-700/70 p-3 rounded-xl text-white/90 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                disabled
               >
-                {isLoading ? "⏳ Executing..." : "⚡ Bridge & Execute ETH (Widget)"}
-              </button>
-            )}
-          </BridgeAndExecuteButton>
+                <option value="stake">Stake ETH</option>
+                <option value="swap">Swap to USDC</option>
+                <option value="lend">Lend on Aave</option>
+                <option value="nft">Mint NFT</option>
+              </select>
+            </div>
+            
+            <button
+              onClick={async () => {
+                try {
+                  // Use the same logic as the working Bridge & Execute modal
+                  const { bridgeAndExecute } = await import("@/lib/nexus");
+                  
+                  const result = await bridgeAndExecute({
+                    token: "ETH",
+                    amount: "0.05",
+                    fromChainId: 11155111,
+                    toChainId: 84532,
+                    executeAction: "stake",
+                  });
+                  
+                  console.log("Bridge & Execute Widget Result:", result);
+                  
+                  if (result.success) {
+                    handleTransactionComplete();
+                    // Show success message
+                    const { default: toast } = await import("react-hot-toast");
+                    toast.success("Bridge & Execute completed successfully!", {
+                      icon: "🎉",
+                      duration: 5000,
+                    });
+                  }
+                } catch (error) {
+                  console.error("Bridge & Execute Widget Error:", error);
+                  const { default: toast } = await import("react-hot-toast");
+                  toast.error("Bridge & Execute failed. Please try again.", {
+                    icon: "❌",
+                    duration: 5000,
+                  });
+                }
+              }}
+              className="w-full bg-gradient-to-r from-green-600 via-green-700 to-cyan-700 hover:from-green-500 hover:via-green-600 hover:to-cyan-600 text-white py-4 px-6 rounded-xl transition-all font-bold shadow-2xl hover:scale-105"
+            >
+              ⚡ Bridge & Execute ETH (Widget)
+            </button>
+          </div>
         </div>
       )}
 
