@@ -54,15 +54,18 @@ class NexusService {
         if (
           initError?.message?.includes("fee grant") ||
           initError?.message?.includes("Network Error") ||
-          initError?.message?.includes("XAR_CA_SDK")
+          initError?.message?.includes("XAR_CA_SDK") ||
+          initError?.message?.includes("Error initializing CA") ||
+          initError?.message?.includes("CA initialization")
         ) {
           console.warn(
-            "⚠️ Nexus SDK fee grant failed, continuing without it..."
+            "⚠️ Nexus SDK initialization failed, continuing with mock mode..."
           );
           // Still mark as initialized for basic functionality
           this.initialized = true;
-          console.log("✅ Nexus SDK initialized (without fee grant)");
+          console.log("✅ Nexus SDK initialized (mock mode)");
         } else {
+          console.error("❌ Unexpected initialization error:", initError);
           throw initError;
         }
       }

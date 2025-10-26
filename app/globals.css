@@ -5,12 +5,33 @@
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --font-inter: "Inter", system-ui, sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono", monospace;
+  --font-space-grotesk: "Space Grotesk", system-ui, sans-serif;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Typography improvements */
+.font-display {
+  font-family: var(--font-space-grotesk);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.font-mono {
+  font-family: var(--font-jetbrains-mono);
+  font-feature-settings: "liga" 1, "calt" 1;
+}
+
+.font-body {
+  font-family: var(--font-inter);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 @layer utilities {
@@ -21,6 +42,10 @@ body {
 
 /* Smooth page transitions */
 * {
+  scroll-behavior: smooth;
+}
+
+html {
   scroll-behavior: smooth;
 }
 

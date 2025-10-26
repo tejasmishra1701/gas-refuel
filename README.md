@@ -1,6 +1,6 @@
-# ⛽ Gas Refuel - Your Cross-Chain Gas Station
+# ⛽ FuelFlow - Your Cross-Chain Gas Station
 
-> **Tired of running out of gas mid-transaction?** We've all been there. Gas Refuel makes cross-chain gas management as easy as filling up your car at any gas station.
+> **Tired of running out of gas mid-transaction?** We've all been there. FuelFlow makes cross-chain gas management as easy as filling up your car at any gas station.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-blue?style=for-the-badge&logo=vercel)](https://gas-refuel.vercel.app)
 [![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js-black?style=for-the-badge&logo=next.js)](https://nextjs.org)

@@ -69,7 +69,7 @@ const mantleSepolia = defineChain({
 
 // Create config outside component to prevent re-initialization
 const config = getDefaultConfig({
-  appName: "Gas Refuel",
+  appName: "FuelFlow",
   projectId: "e397ba97ad3be14af2fc3ecc0e645e93", // Get this from cloud.walletconnect.com
   chains: [
     sepolia,

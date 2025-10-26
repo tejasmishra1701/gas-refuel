@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAccount, useWalletClient, useBalance } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChainBalance } from "./ChainBalance";
@@ -37,7 +37,6 @@ export function GasDashboard() {
   const [isBridgeExecuteModalOpen, setIsBridgeExecuteModalOpen] =
     useState(false);
   const [targetChain, setTargetChain] = useState<ChainKey | undefined>();
-  const [totalBalance, setTotalBalance] = useState<string>("0.00");
   const [nexusReady, setNexusReady] = useState(false);
   const [quickSourceChain, setQuickSourceChain] = useState<ChainKey>("sepolia");
   const [quickTargetChain, setQuickTargetChain] =
@@ -74,7 +73,7 @@ export function GasDashboard() {
           console.warn("⚠️ Nexus SDK initialization timeout, continuing...");
           setNexusReady(true);
         }
-      }, 5000); // 5 second timeout
+      }, 2000); // Reduced to 2 seconds
 
       initializeNexusSDK(walletClient)
         .then(() => {
@@ -106,17 +105,53 @@ export function GasDashboard() {
     }
   }, [mounted, walletClient, nexusReady]);
 
-  // ✅ Persist wallet connection state
+  // ✅ Persist wallet connection state for 5 minutes
   useEffect(() => {
     if (isConnected && address) {
-      // Store connection state in localStorage
-      localStorage.setItem("wallet-connected", "true");
-      localStorage.setItem("wallet-address", address);
+      // Store connection state in localStorage with timestamp
+      const connectionData = {
+        connected: true,
+        address: address,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes from now
+      };
+      localStorage.setItem("wallet-connected", JSON.stringify(connectionData));
     } else {
       localStorage.removeItem("wallet-connected");
-      localStorage.removeItem("wallet-address");
     }
   }, [isConnected, address]);
+
+  // ✅ Check for expired wallet connection on mount
+  useEffect(() => {
+    const checkWalletPersistence = () => {
+      try {
+        const stored = localStorage.getItem("wallet-connected");
+        if (stored) {
+          const connectionData = JSON.parse(stored);
+          const now = Date.now();
+
+          if (connectionData.expiresAt && now < connectionData.expiresAt) {
+            // Connection is still valid, show remaining time
+            const remainingMinutes = Math.ceil(
+              (connectionData.expiresAt - now) / (60 * 1000)
+            );
+            console.log(
+              `🕒 Wallet connection valid for ${remainingMinutes} more minutes`
+            );
+          } else {
+            // Connection expired, clean up
+            localStorage.removeItem("wallet-connected");
+            console.log("⏰ Wallet connection expired, cleaned up");
+          }
+        }
+      } catch (error) {
+        console.error("Error checking wallet persistence:", error);
+        localStorage.removeItem("wallet-connected");
+      }
+    };
+
+    checkWalletPersistence();
+  }, []);
 
   // ✅ Use wagmi hooks to fetch balances for each chain
   const sepoliaBalance = useBalance({
@@ -159,6 +194,64 @@ export function GasDashboard() {
     chainId: 5003, // Mantle Sepolia
   });
 
+  // ✅ Computed total balance - updates automatically when any balance changes
+  const totalBalance = useMemo(() => {
+    if (!address || !isConnected) return "0.00";
+
+    const total = Object.values(balances).reduce(
+      (acc, bal) => acc + bal,
+      BigInt(0)
+    );
+
+    return formatBalance(total);
+  }, [address, isConnected, balances]);
+
+  // ✅ Function to manually refresh balances
+  const refreshBalances = useCallback(async () => {
+    if (!address || !isConnected) return;
+
+    console.log("🔄 Manually refreshing balances...");
+
+    // Trigger refetch for all balance hooks
+    try {
+      await Promise.all([
+        sepoliaBalance.refetch(),
+        baseSepoliaBalance.refetch(),
+        arbitrumSepoliaBalance.refetch(),
+        optimismSepoliaBalance.refetch(),
+        polygonAmoyBalance.refetch(),
+        scrollSepoliaBalance.refetch(),
+        lineaSepoliaBalance.refetch(),
+        mantleSepoliaBalance.refetch(),
+      ]);
+      console.log("✅ Balances refreshed successfully");
+    } catch (error) {
+      console.error("❌ Error refreshing balances:", error);
+    }
+  }, [
+    address,
+    isConnected,
+    sepoliaBalance,
+    baseSepoliaBalance,
+    arbitrumSepoliaBalance,
+    optimismSepoliaBalance,
+    polygonAmoyBalance,
+    scrollSepoliaBalance,
+    lineaSepoliaBalance,
+    mantleSepoliaBalance,
+  ]);
+
+  // ✅ Periodic balance refresh for real-time updates
+  useEffect(() => {
+    if (!address || !isConnected) return;
+
+    const interval = setInterval(() => {
+      refreshBalances();
+    }, 10000); // Refresh every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [address, isConnected, refreshBalances]);
+
   // ✅ Update balances when wagmi data changes
   useEffect(() => {
     // Prevent state updates if component is unmounted
@@ -192,13 +285,6 @@ export function GasDashboard() {
     });
 
     setBalances(newBalances);
-
-    // Total balance
-    const total = Object.values(newBalances).reduce(
-      (acc, bal) => acc + bal,
-      BigInt(0)
-    );
-    setTotalBalance(formatBalance(total));
 
     // Check if any balance is still loading
     const isLoading =
@@ -401,6 +487,11 @@ export function GasDashboard() {
 
         toast.dismiss(loadingToast);
 
+        // Refresh balances after successful transaction
+        setTimeout(() => {
+          refreshBalances();
+        }, 1000); // Wait 1 second for transaction to be confirmed
+
         toast.success(
           (t) => (
             <div className="flex flex-col gap-2">
@@ -419,17 +510,30 @@ export function GasDashboard() {
                   <span className="font-semibold">{amount} ETH</span>
                 </div>
               </div>
-              {result.explorerUrl && (
-                <a
-                  href={result.explorerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-400 hover:text-blue-300 underline mt-2"
-                  onClick={() => toast.dismiss(t.id)}
-                >
-                  View on Explorer →
-                </a>
-              )}
+              <div className="flex gap-2 mt-2">
+                {result.explorerUrl && (
+                  <a
+                    href={result.explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-400 hover:text-blue-300 underline"
+                    onClick={() => toast.dismiss(t.id)}
+                  >
+                    View Transaction →
+                  </a>
+                )}
+                {(result as any).txHash && (
+                  <a
+                    href={`${fromChain.explorer}/tx/${(result as any).txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-green-400 hover:text-green-300 underline"
+                    onClick={() => toast.dismiss(t.id)}
+                  >
+                    Source Chain →
+                  </a>
+                )}
+              </div>
             </div>
           ),
           {
@@ -570,6 +674,11 @@ export function GasDashboard() {
 
         toast.dismiss(loadingToast);
 
+        // Refresh balances after successful transaction
+        setTimeout(() => {
+          refreshBalances();
+        }, 1000); // Wait 1 second for transaction to be confirmed
+
         toast.success(
           (t) => (
             <div className="flex flex-col gap-2">
@@ -596,17 +705,30 @@ export function GasDashboard() {
                   </span>
                 </div>
               </div>
-              {result.explorerUrl && (
-                <a
-                  href={result.explorerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-400 hover:text-blue-300 underline mt-2"
-                  onClick={() => toast.dismiss(t.id)}
-                >
-                  View on Explorer →
-                </a>
-              )}
+              <div className="flex gap-2 mt-2">
+                {result.explorerUrl && (
+                  <a
+                    href={result.explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-400 hover:text-blue-300 underline"
+                    onClick={() => toast.dismiss(t.id)}
+                  >
+                    View Transaction →
+                  </a>
+                )}
+                {(result as any).txHash && (
+                  <a
+                    href={`${fromChain.explorer}/tx/${(result as any).txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-green-400 hover:text-green-300 underline"
+                    onClick={() => toast.dismiss(t.id)}
+                  >
+                    Source Chain →
+                  </a>
+                )}
+              </div>
             </div>
           ),
           {
@@ -686,9 +808,12 @@ export function GasDashboard() {
 
         <div className="text-center max-w-lg relative z-10 animate-fade-in">
           <div className="text-8xl mb-8 animate-pulse-slow">⛽</div>
-          <h1 className="text-5xl font-bold mb-6 text-white bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
-            Gas Refuel
+          <h1 className="text-6xl font-display mb-6 text-white bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent tracking-tight">
+            FuelFlow
           </h1>
+          <p className="text-xl text-zinc-400 mb-8 font-body max-w-2xl mx-auto text-center">
+            Your Cross-Chain Gas Station • Powered by Avail Nexus SDK
+          </p>
           <p className="text-zinc-400 mb-10 text-xl leading-relaxed">
             Never run out of gas on any chain.
             <br />
@@ -758,28 +883,29 @@ export function GasDashboard() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4 animate-fade-in">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
-                <span className="text-5xl">⛽</span> Gas Dashboard
+              <h1 className="text-4xl font-display text-white mb-2 flex items-center gap-3">
+                <span className="text-5xl">⛽</span> FuelFlow
               </h1>
-              <p className="text-zinc-400 text-lg">
-                Manage your cross-chain gas efficiently
+              <p className="text-zinc-400 text-lg font-body">
+                Your Cross-Chain Gas Station
               </p>
-            </div>
-            <div className="scale-105 hover:scale-110 transition-transform">
-              <ConnectButton />
             </div>
           </div>
 
           {/* Total Balance Card */}
-          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-3xl p-8 mb-10 shadow-2xl border border-blue-500/20 backdrop-blur-xl animate-slide-up hover:shadow-blue-500/20 transition-all duration-300 hover:scale-[1.02]">
+          <div id="dashboard" className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-3xl p-8 mb-10 shadow-2xl border border-blue-500/20 backdrop-blur-xl animate-slide-up hover:shadow-blue-500/20 transition-all duration-300 hover:scale-[1.02]">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
               <div>
                 <p className="text-blue-100 text-sm font-medium mb-3 uppercase tracking-wider">
                   Total Gas Balance
                 </p>
-                <p className="text-5xl font-bold text-white mb-2 tracking-tight">
-                  {totalBalance} ETH
-                </p>
+                <div className="text-5xl font-bold text-white mb-2 tracking-tight flex items-center gap-3">
+                  <span className="font-mono">{totalBalance}</span>
+                  <span className="text-2xl">ETH</span>
+                  {isLoading && (
+                    <div className="w-6 h-6 border-2 border-blue-200 border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                </div>
                 <div className="flex items-center gap-3">
                   {nexusReady ? (
                     <span className="text-sm text-green-300 bg-green-500/20 px-3 py-1 rounded-full flex items-center gap-2">
@@ -792,6 +918,14 @@ export function GasDashboard() {
                       Initializing...
                     </span>
                   )}
+                  <button
+                    onClick={refreshBalances}
+                    className="text-sm text-blue-300 bg-blue-500/20 px-3 py-1 rounded-full hover:bg-blue-500/30 transition-colors flex items-center gap-2"
+                    disabled={isLoading}
+                  >
+                    <span className="text-xs">🔄</span>
+                    Refresh
+                  </button>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -815,7 +949,7 @@ export function GasDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Chain Balances */}
-            <div className="lg:col-span-3 space-y-6">
+            <div id="chains" className="lg:col-span-3 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
                   <span className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></span>
@@ -841,14 +975,17 @@ export function GasDashboard() {
 
               {/* Transaction History and Nexus Widgets - Side by Side */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <TransactionHistory
-                  transactions={transactions}
-                  isLoading={isHistoryLoading}
-                />
+                <div id="history">
+                  <TransactionHistory
+                    transactions={transactions}
+                    isLoading={isHistoryLoading}
+                  />
+                </div>
 
-                <NexusWidgets
-                  balances={balances}
-                  onTransactionComplete={() => {
+                <div id="widgets">
+                  <NexusWidgets
+                    balances={balances}
+                    onTransactionComplete={() => {
                     // Refresh balances when widget transactions complete
                     setTimeout(() => window.location.reload(), 2000);
                   }}

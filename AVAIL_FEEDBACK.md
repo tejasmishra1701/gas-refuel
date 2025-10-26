@@ -2,7 +2,7 @@
 
 ## My Honest Take on Avail Nexus SDK
 
-**Project**: Gas Refuel - Cross-Chain Gas Station  
+**Project**: FuelFlow - Cross-Chain Gas Station  
 **Developer**: Amrendra Vikram Singh  
 **Date**: January 2025  
 **Hackathon**: ETHGlobal Online 2025
